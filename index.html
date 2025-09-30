@@ -181,25 +181,32 @@
             min-height: 20px;
             gap: 18px;
             cursor: grab;
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
             border-radius: 3px;
+            user-select: none;
         }
 
         .team-row:hover {
             background-color: rgba(52, 152, 219, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .team-row:active {
             cursor: grabbing;
+            transform: scale(0.98);
         }
 
         .team-row.dragging {
-            opacity: 0.5;
+            opacity: 0.6;
+            transform: rotate(2deg);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .team-row.drag-over {
             background-color: rgba(46, 204, 113, 0.2);
             border: 2px dashed #2ecc71;
+            transform: scale(1.02);
         }
 
         .team-row.drop-zone {
@@ -517,7 +524,7 @@
         <header>
             <h1>College Football Schedule Matrix - 2025 Season</h1>
             <div class="instructions">
-                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag team rows (top/bottom halves) to swap home/away positions • Drag team logos or headers to swap opponents • Teams automatically removed from previous games</p>
+                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag entire team rows (click anywhere on score/logo area) to swap home/away positions • Drag team headers to swap opponents • Teams automatically removed from previous games</p>
             </div>
         </header>
         
@@ -2185,23 +2192,22 @@
                     </div>
                 `;
 
-                // Re-add event listeners to the new logos
-                const logos = cell.querySelectorAll('.team-logo');
-                logos.forEach(logo => {
-                    logo.draggable = true;
-                    logo.addEventListener('dragstart', (e) => this.handleLogoDragStart(e));
-                    logo.addEventListener('dragend', (e) => this.handleDragEnd(e));
-                });
-
-                // Re-add event listeners to the new team-rows
+                // Re-add event listeners to the new team-rows (entire row area)
                 const newTeamRows = cell.querySelectorAll('.team-row');
                 newTeamRows.forEach(row => {
                     row.draggable = true;
+                    row.classList.add('drop-zone');
                     row.addEventListener('dragstart', (e) => this.handleTeamRowDragStart(e));
                     row.addEventListener('dragend', (e) => this.handleDragEnd(e));
                     row.addEventListener('dragover', (e) => this.handleTeamRowDragOver(e));
                     row.addEventListener('dragleave', (e) => this.handleTeamRowDragLeave(e));
                     row.addEventListener('drop', (e) => this.handleTeamRowDrop(e));
+                    
+                    // Make logos non-draggable (they inherit from parent)
+                    const logos = row.querySelectorAll('.team-logo');
+                    logos.forEach(logo => {
+                        logo.draggable = false;
+                    });
                 });
             }
 
@@ -2260,7 +2266,7 @@
                     header.addEventListener('dragend', (e) => this.handleDragEnd(e));
                 });
 
-                // Make team rows draggable and droppable
+                // Make team rows draggable and droppable (entire row area)
                 const teamRows = document.querySelectorAll('.team-row');
                 teamRows.forEach(row => {
                     row.draggable = true;
@@ -2270,14 +2276,12 @@
                     row.addEventListener('dragover', (e) => this.handleTeamRowDragOver(e));
                     row.addEventListener('dragleave', (e) => this.handleTeamRowDragLeave(e));
                     row.addEventListener('drop', (e) => this.handleTeamRowDrop(e));
-                });
-
-                // Make team logos in game cells draggable
-                const teamLogos = document.querySelectorAll('.team-logo');
-                teamLogos.forEach(logo => {
-                    logo.draggable = true;
-                    logo.addEventListener('dragstart', (e) => this.handleLogoDragStart(e));
-                    logo.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                    
+                    // Make logos and scores non-draggable (they inherit from parent)
+                    const logos = row.querySelectorAll('.team-logo');
+                    logos.forEach(logo => {
+                        logo.draggable = false;
+                    });
                 });
             }
 
@@ -2314,28 +2318,7 @@
                 event.target.classList.add('dragging');
             }
 
-            handleLogoDragStart(event) {
-                // Find the team name from the logo's parent cell
-                const gameCell = event.target.closest('[data-team]');
-                if (!gameCell) return;
-                
-                const teamName = gameCell.getAttribute('data-team');
-                const week = gameCell.getAttribute('data-week');
-                const isScored = gameCell.getAttribute('data-is-scored') === 'true';
-                
-                // Don't allow dragging from scored games
-                if (isScored) {
-                    event.preventDefault();
-                    return;
-                }
-                
-                // Store both team name and week for context
-                event.dataTransfer.setData('text/plain', teamName);
-                event.dataTransfer.setData('text/week', week);
-                event.dataTransfer.setData('text/source', 'logo');
-                event.dataTransfer.effectAllowed = 'move';
-                event.target.classList.add('dragging');
-            }
+            // Removed handleLogoDragStart - now using team-row dragging only
 
             // Removed old drag over/leave handlers - now using team-row specific ones
 
@@ -2387,8 +2370,6 @@
                     this.handleTeamRowToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetIsHome ? 'H' : 'A');
                 } else if (source === 'header') {
                     this.handleHeaderToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetIsHome ? 'H' : 'A');
-                } else if (source === 'logo') {
-                    this.handleLogoToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetIsHome ? 'H' : 'A');
                 }
             }
 
@@ -2401,9 +2382,7 @@
                 this.performTeamDrop(draggedTeam, targetTeam, targetWeek, targetHomeAway);
             }
 
-            handleLogoToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetHomeAway) {
-                this.performTeamDrop(draggedTeam, targetTeam, targetWeek, targetHomeAway);
-            }
+            // Removed handleLogoToTeamRowDrop - now using team-row dragging only
 
             performTeamDrop(draggedTeam, targetTeam, targetWeek, targetHomeAway) {
                 console.log(`Moving ${draggedTeam} to play ${targetTeam} in week ${targetWeek} as ${targetHomeAway === 'H' ? 'home' : 'away'}`);
