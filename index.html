@@ -2698,6 +2698,9 @@
 
             // Interactive Features for Rankings Prediction
             handleCellClick(event, teamName, week, game) {
+                // Stop event from bubbling to parent elements (like conference headers)
+                event.stopPropagation();
+                
                 // Don't allow changes to already scored games
                 if (game.result && game.score) {
                     console.log('Cannot modify already scored game');
