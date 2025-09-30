@@ -2079,14 +2079,6 @@
                     
                     // Sort teams by weighted record (away wins worth more than home wins)
                     sortedTeams = sortedTeams.sort((a, b) => {
-                        // Prioritize SEC teams at the top
-                        const aIsSEC = this.getTeamData(a.team.name)?.conferenceName === 'SEC';
-                        const bIsSEC = this.getTeamData(b.team.name)?.conferenceName === 'SEC';
-                        
-                        if (aIsSEC && !bIsSEC) return -1; // a (SEC) comes first
-                        if (!aIsSEC && bIsSEC) return 1;  // b (SEC) comes first
-                        
-                        // If both SEC or both non-SEC, sort by weighted score
                         // Calculate weighted score: away wins * 1.2 + home wins * 1.0 - losses
                         const aScore = (a.awayWins * 1.2 + a.homeWins * 1.0) - a.losses;
                         const bScore = (b.awayWins * 1.2 + b.homeWins * 1.0) - b.losses;
