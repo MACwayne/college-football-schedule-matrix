@@ -2945,10 +2945,16 @@
                 console.log(`📊 Generated rankings data for ${rankingsData.length} teams`);
                 
                 // Update only the weeks from startWeek forward
+                let cellsUpdated = 0;
+                let cellsNotFound = 0;
                 for (let week = startWeek; week <= maxWeeks; week++) {
                     for (let rank = 1; rank <= 10; rank++) {
                         const weekCell = rankingsRows.querySelector(`[style*="grid-column: ${week + 1}"][style*="grid-row: ${rank + 2}"]`);
-                        if (!weekCell) continue;
+                        if (!weekCell) {
+                            cellsNotFound++;
+                            continue;
+                        }
+                        cellsUpdated++;
                         
                         // Find team with this rank in this week
                         const teamForThisRank = rankingsData.find(team => 
@@ -2984,6 +2990,8 @@
                         }
                     }
                 }
+                
+                console.log(`✏️ Updated ${cellsUpdated} cells, ${cellsNotFound} cells not found`);
             }
 
             updateDivisionRankings(division, divisionElement) {
