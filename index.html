@@ -2003,9 +2003,9 @@
                             const record = weekData.record ? weekData.record.record : '0-0';
                             
                             weekCell.innerHTML = `
-                                <div class="team-logo-container" style="width: 30px; height: 30px; margin: 0 auto 4px;">
-                                    <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                    <div class="team-name-fallback" style="display: none;">${teamForThisRank.abbreviation}</div>
+                                <div class="team-logo-container" style="width: 35px; height: 35px; margin: 0 auto 4px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                    <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="team-name-fallback" style="display: none; font-size: 9px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 2px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
                                 </div>
                                 <div style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">${rank}</div>
                                 <div style="font-size: 8px; color: #666; margin-bottom: 2px;">${record}</div>
@@ -2032,10 +2032,11 @@
                 
                 const teams = Object.keys(divisionData.matrix).map(teamName => {
                     const team = this.getTeamData(teamName);
+                    const logo = team?.logo || this.getTeamLogo(teamName) || '';
                     return {
                         name: teamName,
                         abbreviation: team?.abbreviation || teamName.split(' ').map(w => w[0]).join(''),
-                        logo: team?.logo || ''
+                        logo: logo
                     };
                 });
                 
