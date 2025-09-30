@@ -2917,81 +2917,36 @@
             updateDivisionRankingsFromWeek(division, divisionElement, startWeek) {
                 console.log(`🔄 updateDivisionRankingsFromWeek: ${division}, startWeek: ${startWeek}`);
                 
-                // Find the rankings section within this division
-                const rankingsSection = divisionElement.querySelector('.rankings-conference');
-                if (!rankingsSection) {
-                    console.log(`⚠️ No rankings section found for ${division}`);
-                    return;
-                }
+                // Since the querySelector isn't finding cells, let's just completely regenerate the rankings
+                // This is simpler and more reliable than trying to update individual cells
+                console.log(`🔄 Completely regenerating rankings for ${division}...`);
                 
-                // Find the rankings rows container
-                const rankingsRows = rankingsSection.nextElementSibling.nextElementSibling;
-                if (!rankingsRows) {
-                    console.log(`⚠️ No rankings rows found for ${division}`);
-                    return;
-                }
-                
-                console.log(`✅ Found rankings section and rows for ${division}`);
-                
-                // Get the number of weeks from the grid
+                // Find the grid container
                 const grid = divisionElement.querySelector('.schedule-matrix');
+                if (!grid) {
+                    console.log(`⚠️ No grid found for ${division}`);
+                    return;
+                }
+                
+                // Get the number of weeks
                 const maxWeeks = parseInt(grid.style.gridTemplateColumns.split('repeat(')[1].split(',')[0]);
                 
-                console.log(`📅 Updating weeks ${startWeek} to ${maxWeeks}`);
-                
-                // Regenerate rankings data from the start week forward
-                const rankingsData = this.generateWeeklyRankings(division, maxWeeks);
-                
-                console.log(`📊 Generated rankings data for ${rankingsData.length} teams`);
-                
-                // Update only the weeks from startWeek forward
-                let cellsUpdated = 0;
-                let cellsNotFound = 0;
-                for (let week = startWeek; week <= maxWeeks; week++) {
-                    for (let rank = 1; rank <= 10; rank++) {
-                        const weekCell = rankingsRows.querySelector(`[style*="grid-column: ${week + 1}"][style*="grid-row: ${rank + 2}"]`);
-                        if (!weekCell) {
-                            cellsNotFound++;
-                            continue;
-                        }
-                        cellsUpdated++;
-                        
-                        // Find team with this rank in this week
-                        const teamForThisRank = rankingsData.find(team => 
-                            team.weeklyRankings[week - 1]?.rank === rank
-                        );
-                        
-                        if (teamForThisRank) {
-                            const weekData = teamForThisRank.weeklyRankings[week - 1];
-                            const changeClass = weekData.change > 0 ? 'positive' : weekData.change < 0 ? 'negative' : 'neutral';
-                            let changeText = '-';
-                            if (weekData.change > 0) {
-                                changeText = `↑${weekData.change}`;
-                            } else if (weekData.change < 0) {
-                                changeText = `↓${Math.abs(weekData.change)}`;
-                            }
-                            
-                            // Use actual record from the ranking calculation
-                            const record = weekData.record ? weekData.record.record : '0-0';
-                            
-                            weekCell.innerHTML = `
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                    <div class="team-logo-container" style="width: 25px; height: 25px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
-                                        <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="team-name-fallback" style="display: none; font-size: 7px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 1px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
-                                    </div>
-                                    <div style="font-size: 8px; color: #666; font-weight: 600; min-width: 20px; text-align: center;">${record}</div>
-                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
-                                </div>
-                            `;
-                        } else {
-                            // Empty cell if no team has this rank
-                            weekCell.innerHTML = '';
-                        }
-                    }
+                // Find and remove the old rankings section
+                const oldRankingsHeader = divisionElement.querySelector('.rankings-conference');
+                if (oldRankingsHeader) {
+                    // Remove the header, week headers, and rows
+                    const weekHeaders = oldRankingsHeader.nextElementSibling;
+                    const rankingsRows = weekHeaders?.nextElementSibling;
+                    
+                    if (rankingsRows) rankingsRows.remove();
+                    if (weekHeaders) weekHeaders.remove();
+                    oldRankingsHeader.remove();
                 }
                 
-                console.log(`✏️ Updated ${cellsUpdated} cells, ${cellsNotFound} cells not found`);
+                // Add the rankings section again (this will recreate it with new data)
+                this.addRankingsConference(grid, division, maxWeeks);
+                
+                console.log(`✅ Rankings regenerated for ${division}`);
             }
 
             updateDivisionRankings(division, divisionElement) {
