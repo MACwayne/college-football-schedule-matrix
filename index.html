@@ -2370,13 +2370,13 @@
                 const week = gameCell.getAttribute('data-week');
                 const opponent = gameCell.getAttribute('data-opponent');
                 const isScored = gameCell.getAttribute('data-is-scored') === 'true';
-                const isHome = event.target.classList.contains('home-team');
+                const isHomeRow = event.target.classList.contains('home-team');
                 
                 console.log(`🔍 DRAG START DEBUG:`);
                 console.log(`  - gameCell data-team: ${teamName}`);
                 console.log(`  - gameCell data-opponent: ${opponent}`);
                 console.log(`  - event.target classes: ${event.target.className}`);
-                console.log(`  - isHome: ${isHome}`);
+                console.log(`  - isHomeRow: ${isHomeRow}`);
                 console.log(`  - event.target:`, event.target);
                 
                 // Don't allow dragging from scored games
@@ -2390,16 +2390,34 @@
                     element.classList.remove('drag-over');
                 });
                 
-                // Determine which team is being dragged based on position
+                // Determine which team is being dragged based on the actual home/away teams
+                // The home team is always on top (home-team class), away team is on bottom (away-team class)
                 let draggedTeamName, draggedHomeAway;
-                if (isHome) {
-                    // Dragging from home position - drag the row owner
-                    draggedTeamName = teamName;
-                    draggedHomeAway = 'H';
+                if (isHomeRow) {
+                    // Dragging from home team-row - drag the home team
+                    // We need to determine which team is actually home based on the game data
+                    const homeAway = gameCell.getAttribute('data-home-away');
+                    if (homeAway === 'H') {
+                        // Row owner is home
+                        draggedTeamName = teamName;
+                        draggedHomeAway = 'H';
+                    } else {
+                        // Opponent is home
+                        draggedTeamName = opponent;
+                        draggedHomeAway = 'H';
+                    }
                 } else {
-                    // Dragging from away position - drag the opponent
-                    draggedTeamName = opponent;
-                    draggedHomeAway = 'A';
+                    // Dragging from away team-row - drag the away team
+                    const homeAway = gameCell.getAttribute('data-home-away');
+                    if (homeAway === 'H') {
+                        // Row owner is home, so opponent is away
+                        draggedTeamName = opponent;
+                        draggedHomeAway = 'A';
+                    } else {
+                        // Opponent is home, so row owner is away
+                        draggedTeamName = teamName;
+                        draggedHomeAway = 'A';
+                    }
                 }
                 
                 // Store team data for context
@@ -2410,8 +2428,8 @@
                 event.dataTransfer.effectAllowed = 'move';
                 event.target.classList.add('dragging');
                 
-                console.log(`🎯 Dragging ${draggedTeamName} from team-row (${isHome ? 'home' : 'away'} position)`);
-                console.log(`💡 TIP: To drag ${isHome ? 'the opponent' : 'the row owner'}, drag from the ${isHome ? 'bottom' : 'top'} team-row instead`);
+                console.log(`🎯 Dragging ${draggedTeamName} from team-row (${isHomeRow ? 'home' : 'away'} position)`);
+                console.log(`💡 TIP: To drag ${isHomeRow ? 'the away team' : 'the home team'}, drag from the ${isHomeRow ? 'bottom' : 'top'} team-row instead`);
             }
 
             // Removed handleLogoDragStart - now using team-row dragging only
