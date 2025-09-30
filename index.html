@@ -40,6 +40,20 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
+        .instructions {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f4f8;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .instructions p {
+            margin: 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
         .controls {
             display: flex;
             justify-content: center;
@@ -120,6 +134,26 @@
             position: relative;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            cursor: pointer;
+        }
+
+        .matrix-cell[data-is-scored="true"] {
+            cursor: not-allowed;
+        }
+
+        .matrix-cell[data-is-scored="true"]:hover {
+            background-color: white;
+            transform: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .matrix-cell.drag-over {
+            background-color: #e3f2fd;
+            border: 2px dashed #2196f3;
+        }
+
+        .team-header.dragging {
+            opacity: 0.5;
         }
 
         .matrix-cell:hover {
@@ -365,6 +399,16 @@
             justify-content: center;
             gap: 6px;
             border: 1px solid #dee2e6;
+            cursor: grab;
+            transition: background-color 0.2s ease;
+        }
+
+        .team-header:hover {
+            background-color: #e9ecef;
+        }
+
+        .team-header:active {
+            cursor: grabbing;
         }
 
         .team-logo {
@@ -421,6 +465,9 @@
     <div class="container">
         <header>
             <h1>College Football Schedule Matrix - 2025 Season</h1>
+            <div class="instructions">
+                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag team headers to swap opponents</p>
+            </div>
         </header>
         
         <main>
@@ -1556,6 +1603,9 @@
                 
                 // Render FCS Division
                 this.renderDivisionSection('FCS', 'FCS (Football Championship Subdivision)');
+                
+                // Enable interactive features after rendering
+                this.enableDragAndDrop();
             }
 
 
@@ -1671,6 +1721,8 @@
                         // Team name header with logo
                         const teamHeader = document.createElement('div');
                         teamHeader.className = 'team-header';
+                        teamHeader.setAttribute('data-team', team.name);
+                        teamHeader.setAttribute('draggable', 'true');
                         // Create shortened team name
                         const shortName = this.getShortTeamName(team.name);
                         
@@ -1721,8 +1773,17 @@
                                     }
                                 }
                                 
-                                // Set the cell class
+                                // Set the cell class and add interactive attributes
                                 gameCell.className = cellClass;
+                                gameCell.setAttribute('data-team', team.name);
+                                gameCell.setAttribute('data-week', week);
+                                gameCell.setAttribute('data-opponent', game.opponent);
+                                gameCell.setAttribute('data-home-away', game.homeAway);
+                                gameCell.setAttribute('data-is-scored', game.result && game.score ? 'true' : 'false');
+                                gameCell.setAttribute('data-current-result', game.result || '');
+                                
+                                // Add click handler for win/loss toggling
+                                gameCell.addEventListener('click', (e) => this.handleCellClick(e, team.name, week, game));
                                 
                                 // Determine which team is actually home and which is away
                                 const homeTeam = isHome ? team : { logo: game.opponentLogo, name: game.opponent, shortName: opponentShortName };
@@ -1854,6 +1915,8 @@
                     // Team name header with logo
                     const teamHeader = document.createElement('div');
                     teamHeader.className = 'team-header';
+                    teamHeader.setAttribute('data-team', team.name);
+                    teamHeader.setAttribute('draggable', 'true');
                     // Create shortened team name
                     const shortName = this.getShortTeamName(team.name);
                     
@@ -1904,8 +1967,17 @@
                                     }
                                 }
                                 
-                                // Set the cell class
+                                // Set the cell class and add interactive attributes
                                 gameCell.className = cellClass;
+                                gameCell.setAttribute('data-team', team.name);
+                                gameCell.setAttribute('data-week', week);
+                                gameCell.setAttribute('data-opponent', game.opponent);
+                                gameCell.setAttribute('data-home-away', game.homeAway);
+                                gameCell.setAttribute('data-is-scored', game.result && game.score ? 'true' : 'false');
+                                gameCell.setAttribute('data-current-result', game.result || '');
+                                
+                                // Add click handler for win/loss toggling
+                                gameCell.addEventListener('click', (e) => this.handleCellClick(e, team.name, week, game));
                                 
                                 // Determine which team is actually home and which is away
                                 const homeTeam = isHome ? team : { logo: game.opponentLogo, name: game.opponent, shortName: opponentShortName };
@@ -1965,6 +2037,256 @@
                 const matrixContainer = document.getElementById('scheduleMatrix');
                 matrixContainer.innerHTML = `<div class="no-games">${message}</div>`;
                 this.hideLoading();
+            }
+
+            // Interactive Features for Rankings Prediction
+            handleCellClick(event, teamName, week, game) {
+                // Don't allow changes to already scored games
+                if (game.result && game.score) {
+                    console.log('Cannot modify already scored game');
+                    return;
+                }
+
+                // Toggle win/loss for future games
+                this.toggleGameResult(teamName, week, game);
+            }
+
+            toggleGameResult(teamName, week, game) {
+                const currentResult = game.result || '';
+                let newResult = '';
+                
+                // Cycle through: no result -> win -> loss -> no result
+                if (currentResult === '') {
+                    newResult = 'W';
+                } else if (currentResult === 'W') {
+                    newResult = 'L';
+                } else if (currentResult === 'L') {
+                    newResult = '';
+                }
+
+                // Update the game result
+                game.result = newResult;
+                
+                // Update the visual display
+                this.updateCellDisplay(teamName, week, game);
+                
+                // Update the reverse game (opponent's schedule)
+                this.updateReverseGame(teamName, week, game, newResult);
+            }
+
+            updateCellDisplay(teamName, week, game) {
+                const cell = document.querySelector(`[data-team="${teamName}"][data-week="${week}"]`);
+                if (!cell) return;
+
+                // Update cell classes
+                cell.className = 'matrix-cell';
+                if (game.result === 'W') {
+                    cell.className += ' win-cell';
+                } else if (game.result === 'L') {
+                    cell.className += ' loss-cell';
+                }
+
+                // Update data attributes
+                cell.setAttribute('data-current-result', game.result || '');
+            }
+
+            updateReverseGame(teamName, week, game, newResult) {
+                const opponentName = game.opponent;
+                const reverseHomeAway = game.homeAway === 'H' ? 'A' : 'H';
+                
+                // Find the reverse game in the opponent's schedule
+                const opponentDivision = this.findTeamDivision(opponentName);
+                if (!opponentDivision) return;
+
+                const opponentSchedule = this.scheduleData[opponentDivision].matrix[opponentName];
+                if (opponentSchedule && opponentSchedule[week]) {
+                    const reverseGame = opponentSchedule[week];
+                    
+                    // Update the reverse game result
+                    if (newResult === 'W') {
+                        reverseGame.result = 'L';
+                    } else if (newResult === 'L') {
+                        reverseGame.result = 'W';
+                    } else {
+                        reverseGame.result = '';
+                    }
+
+                    // Update the reverse cell display
+                    this.updateCellDisplay(opponentName, week, reverseGame);
+                }
+            }
+
+            findTeamDivision(teamName) {
+                for (const division in this.scheduleData) {
+                    const teams = this.scheduleData[division].teams;
+                    if (teams.some(team => team.name === teamName)) {
+                        return division;
+                    }
+                }
+                return null;
+            }
+
+            // Drag and Drop functionality for team swapping
+            enableDragAndDrop() {
+                // Make team headers draggable
+                const teamHeaders = document.querySelectorAll('.team-header');
+                teamHeaders.forEach(header => {
+                    header.draggable = true;
+                    header.addEventListener('dragstart', (e) => this.handleDragStart(e));
+                    header.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                });
+
+                // Make game cells droppable
+                const gameCells = document.querySelectorAll('[data-team]');
+                gameCells.forEach(cell => {
+                    cell.addEventListener('dragover', (e) => this.handleDragOver(e));
+                    cell.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                    cell.addEventListener('drop', (e) => this.handleDrop(e));
+                });
+            }
+
+            handleDragStart(event) {
+                const teamName = event.target.getAttribute('data-team');
+                event.dataTransfer.setData('text/plain', teamName);
+                event.dataTransfer.effectAllowed = 'move';
+                event.target.classList.add('dragging');
+            }
+
+            handleDragOver(event) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                event.target.classList.add('drag-over');
+            }
+
+            handleDragLeave(event) {
+                event.target.classList.remove('drag-over');
+            }
+
+            handleDragEnd(event) {
+                event.target.classList.remove('dragging');
+                // Remove drag-over from all cells
+                document.querySelectorAll('.drag-over').forEach(cell => {
+                    cell.classList.remove('drag-over');
+                });
+            }
+
+            handleDrop(event) {
+                event.preventDefault();
+                
+                // Remove drag-over class
+                event.target.classList.remove('drag-over');
+                
+                const draggedTeam = event.dataTransfer.getData('text/plain');
+                const targetCell = event.target.closest('[data-team]');
+                
+                if (!targetCell) return;
+
+                const targetTeam = targetCell.getAttribute('data-team');
+                const targetWeek = targetCell.getAttribute('data-week');
+                const targetOpponent = targetCell.getAttribute('data-opponent');
+                const targetHomeAway = targetCell.getAttribute('data-home-away');
+                const isScored = targetCell.getAttribute('data-is-scored') === 'true';
+
+                // Validate the drop
+                if (!this.validateTeamSwap(draggedTeam, targetTeam, targetWeek, isScored)) {
+                    return;
+                }
+
+                // Perform the team swap
+                this.swapTeams(draggedTeam, targetTeam, targetWeek, targetHomeAway);
+            }
+
+            validateTeamSwap(draggedTeam, targetTeam, week, isScored) {
+                // Can't swap with same team
+                if (draggedTeam === targetTeam) {
+                    console.log('Cannot swap team with itself');
+                    return false;
+                }
+
+                // Can't modify already scored games
+                if (isScored) {
+                    console.log('Cannot modify already scored games');
+                    return false;
+                }
+
+                return true;
+            }
+
+            swapTeams(draggedTeam, targetTeam, week, targetHomeAway) {
+                // Find both teams' divisions
+                const draggedDivision = this.findTeamDivision(draggedTeam);
+                const targetDivision = this.findTeamDivision(targetTeam);
+                
+                if (!draggedDivision || !targetDivision) return;
+
+                // Get the current games
+                const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
+                const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][week];
+
+                if (!draggedGame || !targetGame) return;
+
+                // Swap the opponents
+                const tempOpponent = draggedGame.opponent;
+                const tempOpponentLogo = draggedGame.opponentLogo;
+                const tempHomeAway = draggedGame.homeAway;
+
+                // Update dragged team's game
+                draggedGame.opponent = targetGame.opponent;
+                draggedGame.opponentLogo = targetGame.opponentLogo;
+                draggedGame.homeAway = targetHomeAway === 'H' ? 'A' : 'H';
+
+                // Update target team's game
+                targetGame.opponent = tempOpponent;
+                targetGame.opponentLogo = tempOpponentLogo;
+                targetGame.homeAway = targetHomeAway;
+
+                // Update the reverse games
+                this.updateReverseGameForSwap(draggedTeam, targetTeam, week, draggedGame, targetGame);
+
+                // Re-render the affected cells
+                this.updateCellDisplay(draggedTeam, week, draggedGame);
+                this.updateCellDisplay(targetTeam, week, targetGame);
+            }
+
+            updateReverseGameForSwap(draggedTeam, targetTeam, week, draggedGame, targetGame) {
+                // Update the reverse games for both teams
+                const draggedOpponent = draggedGame.opponent;
+                const targetOpponent = targetGame.opponent;
+
+                // Update dragged team's opponent's reverse game
+                const draggedOpponentDivision = this.findTeamDivision(draggedOpponent);
+                if (draggedOpponentDivision) {
+                    const reverseGame = this.scheduleData[draggedOpponentDivision].matrix[draggedOpponent][week];
+                    if (reverseGame) {
+                        reverseGame.opponent = draggedTeam;
+                        reverseGame.opponentLogo = this.getTeamLogo(draggedTeam);
+                        reverseGame.homeAway = draggedGame.homeAway === 'H' ? 'A' : 'H';
+                        this.updateCellDisplay(draggedOpponent, week, reverseGame);
+                    }
+                }
+
+                // Update target team's opponent's reverse game
+                const targetOpponentDivision = this.findTeamDivision(targetOpponent);
+                if (targetOpponentDivision) {
+                    const reverseGame = this.scheduleData[targetOpponentDivision].matrix[targetOpponent][week];
+                    if (reverseGame) {
+                        reverseGame.opponent = targetTeam;
+                        reverseGame.opponentLogo = this.getTeamLogo(targetTeam);
+                        reverseGame.homeAway = targetGame.homeAway === 'H' ? 'A' : 'H';
+                        this.updateCellDisplay(targetOpponent, week, reverseGame);
+                    }
+                }
+            }
+
+            getTeamLogo(teamName) {
+                for (const division in this.scheduleData) {
+                    const teams = this.scheduleData[division].teams;
+                    const team = teams.find(t => t.name === teamName);
+                    if (team) {
+                        return team.logo;
+                    }
+                }
+                return '';
             }
         }
 
