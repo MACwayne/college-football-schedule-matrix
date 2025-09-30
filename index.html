@@ -2452,10 +2452,14 @@
                 }
 
                 // Handle the drop based on source
+                // Determine target position: if dropping on home team-row, dragged team becomes away
+                // If dropping on away team-row, dragged team becomes home
+                const targetPosition = targetIsHome ? 'A' : 'H';
+                
                 if (source === 'team-row') {
-                    this.handleTeamRowToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetIsHome ? 'H' : 'A');
+                    this.handleTeamRowToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetPosition);
                 } else if (source === 'header') {
-                    this.handleHeaderToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetIsHome ? 'H' : 'A');
+                    this.handleHeaderToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetPosition);
                 }
             }
 
@@ -2563,35 +2567,35 @@
 
                 // Determine home/away based on where we're dropping
                 if (targetHomeAway === 'H') {
-                    // Dropping on home position - target team is home, dragged team is away
+                    // Dragged team becomes home, target team becomes away
                     targetGame.opponent = draggedTeam;
                     targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
-                    targetGame.homeAway = 'H';
+                    targetGame.homeAway = 'A'; // Target team is away
                     
                     // Update dragged team's game
                     const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
                     if (draggedGame) {
                         draggedGame.opponent = targetTeam;
                         draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
-                        draggedGame.homeAway = 'A';
-                    }
-                    
-                    console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${targetTeam} home, ${draggedTeam} away)`);
-                } else {
-                    // Dropping on away position - dragged team is home, target team is away
-                    targetGame.opponent = draggedTeam;
-                    targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
-                    targetGame.homeAway = 'A';
-                    
-                    // Update dragged team's game
-                    const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
-                    if (draggedGame) {
-                        draggedGame.opponent = targetTeam;
-                        draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
-                        draggedGame.homeAway = 'H';
+                        draggedGame.homeAway = 'H'; // Dragged team is home
                     }
                     
                     console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${draggedTeam} home, ${targetTeam} away)`);
+                } else {
+                    // Dragged team becomes away, target team becomes home
+                    targetGame.opponent = draggedTeam;
+                    targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
+                    targetGame.homeAway = 'H'; // Target team is home
+                    
+                    // Update dragged team's game
+                    const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
+                    if (draggedGame) {
+                        draggedGame.opponent = targetTeam;
+                        draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
+                        draggedGame.homeAway = 'A'; // Dragged team is away
+                    }
+                    
+                    console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${targetTeam} home, ${draggedTeam} away)`);
                 }
             }
 
