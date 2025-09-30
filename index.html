@@ -2427,22 +2427,48 @@
             }
 
             removeTeamFromAllGamesThisWeek(teamName, week) {
-                const division = this.findTeamDivision(teamName);
-                if (!division) return;
-
-                // Remove from team's own schedule
-                const teamGame = this.scheduleData[division].matrix[teamName][week];
-                if (teamGame && teamGame.opponent) {
-                    const opponent = teamGame.opponent;
+                console.log(`🔍 Removing ${teamName} from ALL games in week ${week}`);
+                
+                // Search through ALL divisions and ALL teams to find any games with this team
+                for (const division in this.scheduleData) {
+                    const divisionData = this.scheduleData[division];
+                    if (!divisionData.matrix) continue;
                     
-                    // Clear team's game
-                    teamGame.opponent = null;
-                    teamGame.opponentLogo = '';
-                    teamGame.homeAway = '';
-                    teamGame.result = '';
-                    
-                    // Clear opponent's reverse game
-                    this.removeTeamFromPosition(opponent, week, teamGame.homeAway === 'H' ? 'A' : 'H');
+                    // Check every team in this division
+                    for (const otherTeamName in divisionData.matrix) {
+                        const otherTeamGames = divisionData.matrix[otherTeamName];
+                        if (!otherTeamGames || !otherTeamGames[week]) continue;
+                        
+                        const game = otherTeamGames[week];
+                        
+                        // If this team is playing the dragged team, remove the game
+                        if (game.opponent === teamName) {
+                            console.log(`🗑️ Removing ${teamName} from ${otherTeamName}'s schedule in week ${week}`);
+                            
+                            // Clear the other team's game
+                            game.opponent = null;
+                            game.opponentLogo = '';
+                            game.homeAway = '';
+                            game.result = '';
+                            
+                            // Update the other team's cell display
+                            this.updateCellDisplay(otherTeamName, week, game);
+                        }
+                    }
+                }
+                
+                // Also clear the dragged team's own game
+                const draggedDivision = this.findTeamDivision(teamName);
+                if (draggedDivision) {
+                    const draggedGame = this.scheduleData[draggedDivision].matrix[teamName][week];
+                    if (draggedGame) {
+                        console.log(`🗑️ Clearing ${teamName}'s own game in week ${week}`);
+                        draggedGame.opponent = null;
+                        draggedGame.opponentLogo = '';
+                        draggedGame.homeAway = '';
+                        draggedGame.result = '';
+                        this.updateCellDisplay(teamName, week, draggedGame);
+                    }
                 }
             }
 
@@ -2502,6 +2528,8 @@
             }
 
             updateAllAffectedCells(draggedTeam, targetTeam, week) {
+                console.log(`🔄 Updating all affected cells for ${draggedTeam} and ${targetTeam} in week ${week}`);
+                
                 // Update target team's cell
                 const targetDivision = this.findTeamDivision(targetTeam);
                 if (targetDivision) {
@@ -2514,6 +2542,24 @@
                 if (draggedDivision) {
                     const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
                     this.updateCellDisplay(draggedTeam, week, draggedGame);
+                }
+                
+                // Update any other teams that might have been affected by the removal
+                // This ensures all cells are properly refreshed
+                for (const division in this.scheduleData) {
+                    const divisionData = this.scheduleData[division];
+                    if (!divisionData.matrix) continue;
+                    
+                    for (const teamName in divisionData.matrix) {
+                        const teamGames = divisionData.matrix[teamName];
+                        if (teamGames && teamGames[week]) {
+                            const game = teamGames[week];
+                            // Only update if the game has no opponent (was cleared)
+                            if (!game.opponent) {
+                                this.updateCellDisplay(teamName, week, game);
+                            }
+                        }
+                    }
                 }
             }
 
