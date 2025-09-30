@@ -1000,10 +1000,6 @@
                     }
                     teamsByConference.get(conference).push(team);
                     
-                    // Debug: Check if Army is in the teams
-                    if (teamName === 'Army') {
-                        console.log(`🎖️ ARMY FOUND IN DATA: ${teamName}, conference: ${conference}`);
-                    }
                 });
                 
                 console.log(`🔍 ${division} Conference Groups:`);
@@ -2336,10 +2332,6 @@
                                 const opponentShortName = this.getShortTeamName(game.opponent);
                                 const isHome = game.homeAway === 'H';
                                 
-                                // Debug: Check if this is Army
-                                if (team.name === 'Army') {
-                                    console.log(`🎖️ ARMY TEAM PROCESSING: ${team.name} vs ${game.opponent}, week ${week}, game.homeAway: ${game.homeAway}, isHome: ${isHome}`);
-                                }
                                 
                                 // Parse score for home/away display
                                 let homeScore = '';
@@ -2362,15 +2354,6 @@
                                             awayScore = scores[0];
                                         }
                                         
-                                        // Debug: Only show logs for Army games to avoid spam
-                                        if (team.name === 'Army') {
-                                            console.log(`🔍 ARMY GAME FOUND: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
-                                            
-                                            // Debug: Show which team's score is which
-                                            const rowTeamScore = isHome ? homeScore : awayScore;
-                                            const opponentScore = isHome ? awayScore : homeScore;
-                                            console.log(`  Row team (${team.name}) score: ${rowTeamScore}, Opponent (${game.opponent}) score: ${opponentScore}`);
-                                        }
                                     }
                                 }
                                 
@@ -2400,10 +2383,6 @@
                                     const rowTeamLost = rowTeamScore < opponentScore;
                                     const isTie = rowTeamScore === opponentScore;
                                     
-                                    // Debug: Only show logs for Army games to avoid spam
-                                    if (team.name === 'Army') {
-                                        console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, rowTeamScore: ${rowTeamScore}, opponentScore: ${opponentScore}, game.homeAway: ${game.homeAway}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
-                                    }
                                     
                                     
                                     if (rowTeamWon) {
@@ -2578,10 +2557,6 @@
                                 const opponentShortName = this.getShortTeamName(game.opponent);
                                 const isHome = game.homeAway === 'H';
                                 
-                                // Debug: Check if this is Army
-                                if (team.name === 'Army') {
-                                    console.log(`🎖️ ARMY TEAM PROCESSING: ${team.name} vs ${game.opponent}, week ${week}, game.homeAway: ${game.homeAway}, isHome: ${isHome}`);
-                                }
                                 
                                 // Parse score for home/away display
                                 let homeScore = '';
@@ -2604,15 +2579,6 @@
                                             awayScore = scores[0];
                                         }
                                         
-                                        // Debug: Only show logs for Army games to avoid spam
-                                        if (team.name === 'Army') {
-                                            console.log(`🔍 ARMY GAME FOUND: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
-                                            
-                                            // Debug: Show which team's score is which
-                                            const rowTeamScore = isHome ? homeScore : awayScore;
-                                            const opponentScore = isHome ? awayScore : homeScore;
-                                            console.log(`  Row team (${team.name}) score: ${rowTeamScore}, Opponent (${game.opponent}) score: ${opponentScore}`);
-                                        }
                                     }
                                 }
                                 
@@ -2642,10 +2608,6 @@
                                     const rowTeamLost = rowTeamScore < opponentScore;
                                     const isTie = rowTeamScore === opponentScore;
                                     
-                                    // Debug: Only show logs for Army games to avoid spam
-                                    if (team.name === 'Army') {
-                                        console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, rowTeamScore: ${rowTeamScore}, opponentScore: ${opponentScore}, game.homeAway: ${game.homeAway}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
-                                    }
                                     
                                     
                                     if (rowTeamWon) {
@@ -3286,6 +3248,9 @@
                 
                 // Step 3: Update all affected cells
                 this.updateAllAffectedCells(draggedTeam, targetTeam, targetWeek);
+                
+                // Step 4: Update rankings from this week forward
+                this.updateRankingsFromWeek(parseInt(targetWeek));
             }
 
             removeTeamFromCurrentPosition(teamName, week) {
