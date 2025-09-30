@@ -2512,28 +2512,10 @@
                 // Step 1: Remove dragged team from their current position (if they have one)
                 this.removeTeamFromCurrentPosition(draggedTeam, targetWeek);
                 
-                // Step 2: Check if there's already a team in the target position and remove them
-                const targetDivision = this.findTeamDivision(targetTeam);
-                if (targetDivision) {
-                    const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][targetWeek];
-                    if (targetGame && targetGame.opponent) {
-                        // Find which team is currently in the target position
-                        const currentHomeTeam = targetGame.homeAway === 'H' ? targetTeam : targetGame.opponent;
-                        const currentAwayTeam = targetGame.homeAway === 'H' ? targetGame.opponent : targetTeam;
-                        
-                        const teamInTargetPosition = targetHomeAway === 'H' ? currentHomeTeam : currentAwayTeam;
-                        
-                        if (teamInTargetPosition && teamInTargetPosition !== draggedTeam) {
-                            console.log(`🗑️ Removing ${teamInTargetPosition} from target position`);
-                            this.removeTeamFromCurrentPosition(teamInTargetPosition, targetWeek);
-                        }
-                    }
-                }
-                
-                // Step 3: Add dragged team to target position
+                // Step 2: Add dragged team to target position (this will handle replacing any existing team)
                 this.addTeamToPosition(draggedTeam, targetTeam, targetWeek, targetHomeAway);
                 
-                // Step 4: Update all affected cells
+                // Step 3: Update all affected cells
                 this.updateAllAffectedCells(draggedTeam, targetTeam, targetWeek);
             }
 
@@ -2635,11 +2617,24 @@
                     return;
                 }
 
-                // Update target team's game
+                // Check if there's already a team in the target position and remove them
                 const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][week];
                 if (!targetGame) {
                     console.log(`❌ Could not find target game for ${targetTeam} in week ${week}`);
                     return;
+                }
+
+                if (targetGame.opponent) {
+                    // Find which team is currently in the target position
+                    const currentHomeTeam = targetGame.homeAway === 'H' ? targetTeam : targetGame.opponent;
+                    const currentAwayTeam = targetGame.homeAway === 'H' ? targetGame.opponent : targetTeam;
+                    
+                    const teamInTargetPosition = targetHomeAway === 'H' ? currentHomeTeam : currentAwayTeam;
+                    
+                    if (teamInTargetPosition && teamInTargetPosition !== draggedTeam) {
+                        console.log(`🗑️ Removing ${teamInTargetPosition} from target position to make room for ${draggedTeam}`);
+                        this.removeTeamFromCurrentPosition(teamInTargetPosition, week);
+                    }
                 }
 
                 // Determine home/away based on where we're dropping
