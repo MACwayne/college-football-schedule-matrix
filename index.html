@@ -246,10 +246,6 @@
             pointer-events: auto;
         }
 
-        .team-row.away-team {
-            cursor: default;
-            opacity: 0.7;
-        }
 
         /* Make logos non-draggable and non-selectable */
         .team-logo {
@@ -2380,25 +2376,27 @@
                     return;
                 }
                 
-                // Only allow dragging from the home team-row (the team that owns this row)
-                // The away team-row should not be draggable
-                if (!isHome) {
-                    event.preventDefault();
-                    return;
+                // Determine which team is being dragged based on position
+                let draggedTeamName, draggedHomeAway;
+                if (isHome) {
+                    // Dragging from home position - drag the row owner
+                    draggedTeamName = teamName;
+                    draggedHomeAway = 'H';
+                } else {
+                    // Dragging from away position - drag the opponent
+                    draggedTeamName = opponent;
+                    draggedHomeAway = 'A';
                 }
-                
-                // The dragged team is always the row owner (teamName)
-                const draggedTeamName = teamName;
                 
                 // Store team data for context
                 event.dataTransfer.setData('text/plain', draggedTeamName);
                 event.dataTransfer.setData('text/week', week);
                 event.dataTransfer.setData('text/source', 'team-row');
-                event.dataTransfer.setData('text/home-away', 'H'); // Always home since we only drag from home team-row
+                event.dataTransfer.setData('text/home-away', draggedHomeAway);
                 event.dataTransfer.effectAllowed = 'move';
                 event.target.classList.add('dragging');
                 
-                console.log(`🎯 Dragging ${draggedTeamName} from team-row (home position)`);
+                console.log(`🎯 Dragging ${draggedTeamName} from team-row (${isHome ? 'home' : 'away'} position)`);
             }
 
             // Removed handleLogoDragStart - now using team-row dragging only
@@ -2558,20 +2556,38 @@
                 const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][week];
                 if (!targetGame) return;
 
-                // Set the target team as home and dragged team as away
-                targetGame.opponent = draggedTeam;
-                targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
-                targetGame.homeAway = 'H'; // Target team is always home
-
-                // Update dragged team's game
-                const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
-                if (!draggedGame) return;
-
-                draggedGame.opponent = targetTeam;
-                draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
-                draggedGame.homeAway = 'A'; // Dragged team is always away
-                
-                console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${targetTeam} home, ${draggedTeam} away)`);
+                // Determine home/away based on where we're dropping
+                if (targetHomeAway === 'H') {
+                    // Dropping on home position - target team is home, dragged team is away
+                    targetGame.opponent = draggedTeam;
+                    targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
+                    targetGame.homeAway = 'H';
+                    
+                    // Update dragged team's game
+                    const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
+                    if (draggedGame) {
+                        draggedGame.opponent = targetTeam;
+                        draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
+                        draggedGame.homeAway = 'A';
+                    }
+                    
+                    console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${targetTeam} home, ${draggedTeam} away)`);
+                } else {
+                    // Dropping on away position - dragged team is home, target team is away
+                    targetGame.opponent = draggedTeam;
+                    targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
+                    targetGame.homeAway = 'A';
+                    
+                    // Update dragged team's game
+                    const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
+                    if (draggedGame) {
+                        draggedGame.opponent = targetTeam;
+                        draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
+                        draggedGame.homeAway = 'H';
+                    }
+                    
+                    console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${draggedTeam} home, ${targetTeam} away)`);
+                }
             }
 
             updateAllAffectedCells(draggedTeam, targetTeam, week) {
