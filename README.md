@@ -51,18 +51,24 @@ A comprehensive web application for displaying college football schedules in an 
 
 ## Usage
 
-1. **Open the Application**: Simply open `cfb-schedule.html` in your web browser
-2. **Navigate Divisions**: Click on FBS or FCS headers to expand/collapse
-3. **Browse Conferences**: Click on conference names to show/hide teams
-4. **View Games**: Each cell shows opponent, score, and outcome
-5. **Mobile Friendly**: Responsive design works on all screen sizes
+### 🌐 **Live Demo**
+Visit the live application: **[https://YOUR_USERNAME.github.io/college-football-schedule-matrix](https://YOUR_USERNAME.github.io/college-football-schedule-matrix)**
+
+### 💻 **Local Usage**
+1. **Clone the Repository**: `git clone https://github.com/YOUR_USERNAME/college-football-schedule-matrix.git`
+2. **Open the Application**: Simply open `index.html` in your web browser
+3. **Navigate Divisions**: Click on FBS or FCS headers to expand/collapse
+4. **Browse Conferences**: Click on conference names to show/hide teams
+5. **View Games**: Each cell shows opponent, score, and outcome
+6. **Mobile Friendly**: Responsive design works on all screen sizes
 
 ## File Structure
 
 ```
-Dutch/
-├── cfb-schedule.html    # Main application file
+college-football-schedule-matrix/
+├── index.html          # Main application file (GitHub Pages entry point)
 ├── README.md           # Project documentation
+├── .gitignore          # Git ignore rules
 └── .git/               # Git repository
 ```
 
@@ -84,6 +90,24 @@ Dutch/
 - **Conference Alignment**: Accurate conference assignments
 - **Logo Integration**: High-quality team logos with fallback text
 - **Score Display**: Real-time scores and game outcomes
+
+## 🚀 GitHub Pages Deployment
+
+This project is automatically deployed to GitHub Pages:
+
+1. **Repository**: Public GitHub repository
+2. **Branch**: `master` branch
+3. **Source**: Root directory (`/`)
+4. **Entry Point**: `index.html`
+5. **URL**: `https://YOUR_USERNAME.github.io/college-football-schedule-matrix`
+
+### **Enable GitHub Pages:**
+1. Go to your repository **Settings**
+2. Scroll down to **"Pages"** section
+3. **Source**: Select **"Deploy from a branch"**
+4. **Branch**: Select **"master"** and **"/ (root)"**
+5. Click **"Save"**
+6. Your site will be available at the URL above
 
 ## Development
 
