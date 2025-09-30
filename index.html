@@ -2557,18 +2557,8 @@
                         // Update the team's cell display
                         this.updateCellDisplay(teamName, week, teamGame);
                         
-                        // Also clear the opponent's reverse game
-                        const opponentDivision = this.findTeamDivision(opponentName);
-                        if (opponentDivision) {
-                            const opponentGame = this.scheduleData[opponentDivision].matrix[opponentName][week];
-                            if (opponentGame) {
-                                opponentGame.opponent = null;
-                                opponentGame.opponentLogo = '';
-                                opponentGame.homeAway = '';
-                                opponentGame.result = '';
-                                this.updateCellDisplay(opponentName, week, opponentGame);
-                            }
-                        }
+                        // DON'T clear the opponent's reverse game - let them stay in their row
+                        console.log(`✅ ${opponentName} stays in their row, just shows as having no opponent`);
                     }
                 }
             }
