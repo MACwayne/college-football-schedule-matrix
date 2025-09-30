@@ -398,28 +398,6 @@
             display: contents;
         }
 
-        .home-away-container {
-            padding: 4px 2px !important;
-        }
-
-        .home-away-header {
-            font-size: 8px;
-            font-weight: bold;
-            text-align: center;
-            padding: 2px;
-            border-radius: 3px;
-        }
-
-        .home-header {
-            background-color: rgba(46, 204, 113, 0.2);
-            color: #27ae60;
-        }
-
-        .away-header {
-            background-color: rgba(231, 76, 60, 0.2);
-            color: #c0392b;
-        }
-
         .conference-header {
             background-color: #34495e;
             color: white;
@@ -1789,9 +1767,9 @@
 
                 // Create division header
                 const divisionHeader = document.createElement('div');
-                divisionHeader.className = 'division-header';
+                divisionHeader.className = 'division-header collapsed';
                 divisionHeader.innerHTML = `
-                    <span class="division-toggle">▼</span>
+                    <span class="division-toggle">▶</span>
                     <span class="division-name">${title}</span>
                     <span class="division-count">(${divisionData.teams.length} teams)</span>
                 `;
@@ -1817,22 +1795,22 @@
                 // Create division content container
                 const divisionContent = document.createElement('div');
                 divisionContent.className = 'division-content';
+                divisionContent.style.display = 'none'; // Start collapsed
                 
                 // Create grid
                 const grid = document.createElement('div');
                 grid.className = 'schedule-matrix';
                 grid.style.gridTemplateColumns = `150px repeat(${maxWeeks}, 100px)`;
-                grid.style.gridTemplateRows = `auto auto repeat(${Object.keys(divisionData.matrix).length}, auto)`;
 
                 // Add conference groups
                 divisionData.conferenceGroups.forEach(conferenceGroup => {
                     // Conference header row
                     const conferenceHeader = document.createElement('div');
-                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs' : 'conference-header';
+                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs collapsed' : 'conference-header collapsed';
                     conferenceHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
                     conferenceHeader.style.cursor = 'pointer';
                     conferenceHeader.innerHTML = `
-                        <span class="conference-toggle">▼</span>
+                        <span class="conference-toggle">▶</span>
                         <span class="conference-name">${conferenceGroup.name}</span>
                         <span class="conference-count">(${conferenceGroup.teams.length} teams)</span>
                     `;
@@ -1861,7 +1839,7 @@
                     // Add week headers for this conference
                     const weekHeadersRow = document.createElement('div');
                     weekHeadersRow.className = 'week-headers-row';
-                    weekHeadersRow.style.display = 'contents';
+                    weekHeadersRow.style.display = 'none'; // Start collapsed
                     
                     // Teams header
                     const teamsHeader = document.createElement('div');
@@ -1879,44 +1857,10 @@
                     
                     grid.appendChild(weekHeadersRow);
 
-                    // Add home/away headers row
-                    const homeAwayHeadersRow = document.createElement('div');
-                    homeAwayHeadersRow.className = 'week-headers-row';
-                    homeAwayHeadersRow.style.display = 'contents';
-                    
-                    // Empty cell for teams column
-                    const emptyHeader = document.createElement('div');
-                    emptyHeader.className = 'week-header';
-                    emptyHeader.textContent = '';
-                    homeAwayHeadersRow.appendChild(emptyHeader);
-                    
-                    // Home/Away headers for each week
-                    for (let week = 1; week <= maxWeeks; week++) {
-                        const homeAwayContainer = document.createElement('div');
-                        homeAwayContainer.className = 'week-header home-away-container';
-                        homeAwayContainer.style.display = 'flex';
-                        homeAwayContainer.style.flexDirection = 'column';
-                        homeAwayContainer.style.gap = '2px';
-                        
-                        const homeHeader = document.createElement('div');
-                        homeHeader.className = 'home-away-header home-header';
-                        homeHeader.textContent = 'HOME';
-                        homeAwayContainer.appendChild(homeHeader);
-                        
-                        const awayHeader = document.createElement('div');
-                        awayHeader.className = 'home-away-header away-header';
-                        awayHeader.textContent = 'AWAY';
-                        homeAwayContainer.appendChild(awayHeader);
-                        
-                        homeAwayHeadersRow.appendChild(homeAwayContainer);
-                    }
-                    
-                    grid.appendChild(homeAwayHeadersRow);
-
                     // Create container for conference teams
                     const conferenceContainer = document.createElement('div');
                     conferenceContainer.className = 'conference-teams';
-                    conferenceContainer.style.display = 'contents';
+                    conferenceContainer.style.display = 'none'; // Start collapsed
 
                     // Teams in this conference
                     conferenceGroup.teams.forEach((team, teamIndex) => {
@@ -2077,11 +2021,11 @@
                 divisionData.conferenceGroups.forEach(conferenceGroup => {
                     // Conference header row with toggle functionality
                     const conferenceHeader = document.createElement('div');
-                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs' : 'conference-header';
+                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs collapsed' : 'conference-header collapsed';
                     conferenceHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
                     conferenceHeader.style.cursor = 'pointer';
                     conferenceHeader.innerHTML = `
-                        <span class="conference-toggle">▼</span>
+                        <span class="conference-toggle">▶</span>
                         <span class="conference-name">${conferenceGroup.name}</span>
                         <span class="conference-count">(${conferenceGroup.teams.length} teams)</span>
                     `;
@@ -2110,7 +2054,7 @@
                     // Create container for conference teams
                     const conferenceContainer = document.createElement('div');
                     conferenceContainer.className = 'conference-teams';
-                    conferenceContainer.style.display = 'contents';
+                    conferenceContainer.style.display = 'none'; // Start collapsed
 
                     // Teams in this conference
                     conferenceGroup.teams.forEach((team, teamIndex) => {
