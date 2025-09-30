@@ -215,10 +215,10 @@
         }
 
         .team-row.drag-over {
-            background-color: rgba(46, 204, 113, 0.25);
-            border: 2px dashed #2ecc71;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+            background-color: rgba(46, 204, 113, 0.15);
+            border: 1px solid #2ecc71;
+            transform: scale(1.02);
+            box-shadow: 0 2px 6px rgba(46, 204, 113, 0.2);
         }
 
         .team-row.drop-zone {
@@ -2376,6 +2376,11 @@
                     return;
                 }
                 
+                // Clean up any existing drag-over classes
+                document.querySelectorAll('.drag-over').forEach(element => {
+                    element.classList.remove('drag-over');
+                });
+                
                 // Determine which team is being dragged based on position
                 let draggedTeamName, draggedHomeAway;
                 if (isHome) {
@@ -2628,9 +2633,13 @@
 
             handleDragEnd(event) {
                 event.target.classList.remove('dragging');
-                // Remove drag-over from all cells
-                document.querySelectorAll('.drag-over').forEach(cell => {
-                    cell.classList.remove('drag-over');
+                // Remove drag-over from all elements
+                document.querySelectorAll('.drag-over').forEach(element => {
+                    element.classList.remove('drag-over');
+                });
+                // Also remove from team-rows specifically
+                document.querySelectorAll('.team-row.drag-over').forEach(row => {
+                    row.classList.remove('drag-over');
                 });
             }
 
