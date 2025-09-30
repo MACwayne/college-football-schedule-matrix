@@ -2512,13 +2512,10 @@
                 // Step 1: Remove dragged team from their current position (if they have one)
                 this.removeTeamFromCurrentPosition(draggedTeam, targetWeek);
                 
-                // Step 2: Remove dragged team from the specific row they were dragged from
-                this.removeTeamFromDraggedRow(draggedTeam, targetWeek);
-                
-                // Step 3: Add dragged team to target position (this will handle replacing any existing team)
+                // Step 2: Add dragged team to target position (this will handle replacing any existing team)
                 this.addTeamToPosition(draggedTeam, targetTeam, targetWeek, targetHomeAway);
                 
-                // Step 4: Update all affected cells
+                // Step 3: Update all affected cells
                 this.updateAllAffectedCells(draggedTeam, targetTeam, targetWeek);
             }
 
@@ -2547,36 +2544,6 @@
                 }
             }
 
-            removeTeamFromDraggedRow(teamName, week) {
-                console.log(`🔍 Removing ${teamName} from the row they were dragged from in week ${week}`);
-                
-                // Find and remove the team from any row where they appear as an opponent
-                for (const division in this.scheduleData) {
-                    const divisionData = this.scheduleData[division];
-                    if (!divisionData.matrix) continue;
-                    
-                    for (const otherTeamName in divisionData.matrix) {
-                        const otherTeamGames = divisionData.matrix[otherTeamName];
-                        if (!otherTeamGames || !otherTeamGames[week]) continue;
-                        
-                        const game = otherTeamGames[week];
-                        if (game.opponent === teamName) {
-                            console.log(`🗑️ Removing ${teamName} from ${otherTeamName}'s row as opponent`);
-                            
-                            // Clear the opponent reference
-                            game.opponent = null;
-                            game.opponentLogo = '';
-                            game.homeAway = '';
-                            game.result = '';
-                            
-                            // Update the other team's cell display
-                            this.updateCellDisplay(otherTeamName, week, game);
-                            
-                            console.log(`✅ ${otherTeamName} now shows as having no opponent`);
-                        }
-                    }
-                }
-            }
 
             removeTeamFromAllGamesThisWeek(teamName, week) {
                 console.log(`🔍 Removing ${teamName} from ALL games in week ${week}`);
@@ -2639,24 +2606,11 @@
                     return;
                 }
 
-                // Check if there's already a team in the target position and remove them
+                // Get the target game
                 const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][week];
                 if (!targetGame) {
                     console.log(`❌ Could not find target game for ${targetTeam} in week ${week}`);
                     return;
-                }
-
-                if (targetGame.opponent) {
-                    // Find which team is currently in the target position
-                    const currentHomeTeam = targetGame.homeAway === 'H' ? targetTeam : targetGame.opponent;
-                    const currentAwayTeam = targetGame.homeAway === 'H' ? targetGame.opponent : targetTeam;
-                    
-                    const teamInTargetPosition = targetHomeAway === 'H' ? currentHomeTeam : currentAwayTeam;
-                    
-                    if (teamInTargetPosition && teamInTargetPosition !== draggedTeam) {
-                        console.log(`🗑️ Removing ${teamInTargetPosition} from target position to make room for ${draggedTeam}`);
-                        this.removeTeamFromCurrentPosition(teamInTargetPosition, week);
-                    }
                 }
 
                 // Determine home/away based on where we're dropping
