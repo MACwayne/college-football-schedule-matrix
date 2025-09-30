@@ -2331,6 +2331,11 @@
                                 const opponentShortName = this.getShortTeamName(game.opponent);
                                 const isHome = game.homeAway === 'H';
                                 
+                                // Debug: Check if this is Army
+                                if (team.name === 'Army') {
+                                    console.log(`🎖️ ARMY TEAM PROCESSING: ${team.name} vs ${game.opponent}, week ${week}, game.homeAway: ${game.homeAway}, isHome: ${isHome}`);
+                                }
+                                
                                 // Parse score for home/away display
                                 let homeScore = '';
                                 let awayScore = '';
@@ -2354,7 +2359,7 @@
                                         
                                         // Debug: Only show logs for Army games to avoid spam
                                         if (team.name === 'Army') {
-                                            console.log(`Score Debug: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
+                                            console.log(`🔍 ARMY GAME FOUND: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
                                             
                                             // Debug: Show which team's score is which
                                             const rowTeamScore = isHome ? homeScore : awayScore;
@@ -2559,6 +2564,11 @@
                                 const opponentShortName = this.getShortTeamName(game.opponent);
                                 const isHome = game.homeAway === 'H';
                                 
+                                // Debug: Check if this is Army
+                                if (team.name === 'Army') {
+                                    console.log(`🎖️ ARMY TEAM PROCESSING: ${team.name} vs ${game.opponent}, week ${week}, game.homeAway: ${game.homeAway}, isHome: ${isHome}`);
+                                }
+                                
                                 // Parse score for home/away display
                                 let homeScore = '';
                                 let awayScore = '';
@@ -2582,7 +2592,7 @@
                                         
                                         // Debug: Only show logs for Army games to avoid spam
                                         if (team.name === 'Army') {
-                                            console.log(`Score Debug: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
+                                            console.log(`🔍 ARMY GAME FOUND: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
                                             
                                             // Debug: Show which team's score is which
                                             const rowTeamScore = isHome ? homeScore : awayScore;
