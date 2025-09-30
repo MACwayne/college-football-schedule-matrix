@@ -350,6 +350,12 @@
             text-align: center;
         }
 
+        .matrix-cell.empty-cell {
+            background-color: #f8f9fa;
+            border: 1px dashed #dee2e6;
+            opacity: 0.6;
+        }
+
 
 
         .week-header {
@@ -2210,8 +2216,9 @@
                     // Re-render the game content
                     this.renderGameCell(cell, teamName, week, game);
                 } else {
-                    // Show BYE or empty
-                    cell.innerHTML = '<div class="bye">BYE</div>';
+                    // Show empty cell (no opponent)
+                    cell.innerHTML = '';
+                    cell.className = 'matrix-cell empty-cell';
                 }
             }
 
@@ -2482,40 +2489,12 @@
             removeTeamFromAllGamesThisWeek(teamName, week) {
                 console.log(`🔍 Removing ${teamName} from ALL games in week ${week}`);
                 
-                // Search through ALL divisions and ALL teams to find any games with this team
-                for (const division in this.scheduleData) {
-                    const divisionData = this.scheduleData[division];
-                    if (!divisionData.matrix) continue;
-                    
-                    // Check every team in this division
-                    for (const otherTeamName in divisionData.matrix) {
-                        const otherTeamGames = divisionData.matrix[otherTeamName];
-                        if (!otherTeamGames || !otherTeamGames[week]) continue;
-                        
-                        const game = otherTeamGames[week];
-                        
-                        // If this team is playing the dragged team, remove the game
-                        if (game.opponent === teamName) {
-                            console.log(`🗑️ Removing ${teamName} from ${otherTeamName}'s schedule in week ${week}`);
-                            
-                            // Clear the other team's game
-                            game.opponent = null;
-                            game.opponentLogo = '';
-                            game.homeAway = '';
-                            game.result = '';
-                            
-                            // Update the other team's cell display
-                            this.updateCellDisplay(otherTeamName, week, game);
-                        }
-                    }
-                }
-                
-                // Also clear the dragged team's own game
+                // Only clear the dragged team's own game, don't touch their opponents
                 const draggedDivision = this.findTeamDivision(teamName);
                 if (draggedDivision) {
                     const draggedGame = this.scheduleData[draggedDivision].matrix[teamName][week];
                     if (draggedGame) {
-                        console.log(`🗑️ Clearing ${teamName}'s own game in week ${week}`);
+                        console.log(`🗑️ Clearing ${teamName}'s own game in week ${week} (opponent stays in place)`);
                         draggedGame.opponent = null;
                         draggedGame.opponentLogo = '';
                         draggedGame.homeAway = '';
