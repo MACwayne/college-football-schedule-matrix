@@ -1955,10 +1955,8 @@
                             const changeClass = weekData.change > 0 ? 'positive' : weekData.change < 0 ? 'negative' : 'neutral';
                             const changeText = weekData.change > 0 ? `+${weekData.change}` : weekData.change < 0 ? `${weekData.change}` : '-';
                             
-                            // Generate random win/loss record for demo
-                            const wins = Math.floor(Math.random() * 4) + (week > 4 ? week - 4 : 0);
-                            const losses = Math.max(0, week - wins);
-                            const record = `${wins}-${losses}`;
+                            // Use actual record from the ranking calculation
+                            const record = weekData.record ? weekData.record.record : '0-0';
                             
                             weekCell.innerHTML = `
                                 <div class="rankings-team-logo">
@@ -1983,48 +1981,44 @@
             }
 
             generateWeeklyRankings(division, numWeeks) {
-                // Sample teams data
-                const sampleTeams = {
-                    'FBS': [
-                        { name: 'Georgia Bulldogs', abbreviation: 'UGA', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/61.png' },
-                        { name: 'Alabama Crimson Tide', abbreviation: 'ALA', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/333.png' },
-                        { name: 'Ohio State Buckeyes', abbreviation: 'OSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/194.png' },
-                        { name: 'Michigan Wolverines', abbreviation: 'MICH', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/130.png' },
-                        { name: 'Texas Longhorns', abbreviation: 'TEX', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/251.png' },
-                        { name: 'Oregon Ducks', abbreviation: 'ORE', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png' },
-                        { name: 'Penn State Nittany Lions', abbreviation: 'PSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/255.png' },
-                        { name: 'Florida State Seminoles', abbreviation: 'FSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/52.png' },
-                        { name: 'Notre Dame Fighting Irish', abbreviation: 'ND', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/87.png' },
-                        { name: 'LSU Tigers', abbreviation: 'LSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/99.png' }
-                    ],
-                    'FCS': [
-                        { name: 'South Dakota State Jackrabbits', abbreviation: 'SDSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2571.png' },
-                        { name: 'Montana Grizzlies', abbreviation: 'MONT', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/147.png' },
-                        { name: 'North Dakota State Bison', abbreviation: 'NDSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2550.png' },
-                        { name: 'Furman Paladins', abbreviation: 'FUR', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/61.png' },
-                        { name: 'Idaho Vandals', abbreviation: 'IDAHO', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/70.png' },
-                        { name: 'Montana State Bobcats', abbreviation: 'MTST', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/147.png' },
-                        { name: 'Sacramento State Hornets', abbreviation: 'SAC', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2569.png' },
-                        { name: 'Delaware Blue Hens', abbreviation: 'DEL', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/45.png' },
-                        { name: 'Villanova Wildcats', abbreviation: 'NOVA', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/222.png' },
-                        { name: 'Austin Peay Governors', abbreviation: 'AP', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png' }
-                    ]
-                };
+                // Get teams from the actual schedule data
+                const divisionData = this.scheduleData[division];
+                if (!divisionData || !divisionData.matrix) {
+                    return [];
+                }
                 
-                const teams = sampleTeams[division] || [];
+                const teams = Object.keys(divisionData.matrix).map(teamName => {
+                    const team = this.getTeamData(teamName);
+                    return {
+                        name: teamName,
+                        abbreviation: team?.abbreviation || teamName.split(' ').map(w => w[0]).join(''),
+                        logo: team?.logo || ''
+                    };
+                });
                 
-                // Generate weekly rankings where teams move between positions
+                // Generate weekly rankings based on actual game results
                 const weeklyRankings = [];
                 
                 for (let week = 1; week <= numWeeks; week++) {
-                    // Create a shuffled array of teams for this week
-                    const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+                    // Calculate team records for this week
+                    const teamRecords = this.calculateTeamRecords(division, week);
                     
-                    // Assign ranks 1-10 to the shuffled teams
-                    const weekRankings = shuffledTeams.slice(0, 10).map((team, index) => ({
-                        team: team,
+                    // Sort teams by weighted record (away wins worth more than home wins)
+                    const sortedTeams = teamRecords
+                        .filter(record => record.wins > 0 || record.losses > 0) // Only teams with games
+                        .sort((a, b) => {
+                            // Calculate weighted score: away wins * 1.2 + home wins * 1.0 - losses
+                            const aScore = (a.awayWins * 1.2 + a.homeWins * 1.0) - a.losses;
+                            const bScore = (b.awayWins * 1.2 + b.homeWins * 1.0) - b.losses;
+                            return bScore - aScore; // Higher score = better rank
+                        });
+                    
+                    // Assign ranks 1-10 to top teams
+                    const weekRankings = sortedTeams.slice(0, 10).map((record, index) => ({
+                        team: record.team,
                         rank: index + 1,
-                        change: 0 // Will be calculated next
+                        change: 0, // Will be calculated next
+                        record: record
                     }));
                     
                     // Calculate changes from previous week
@@ -2051,14 +2045,16 @@
                             teamWeeklyRankings.push({
                                 week: week,
                                 rank: weekData.rank,
-                                change: weekData.change
+                                change: weekData.change,
+                                record: weekData.record
                             });
                         } else {
                             // Team not in top 10 this week
                             teamWeeklyRankings.push({
                                 week: week,
                                 rank: null,
-                                change: 0
+                                change: 0,
+                                record: null
                             });
                         }
                     }
@@ -2068,6 +2064,55 @@
                         weeklyRankings: teamWeeklyRankings
                     };
                 });
+            }
+
+            calculateTeamRecords(division, week) {
+                const divisionData = this.scheduleData[division];
+                if (!divisionData || !divisionData.matrix) {
+                    return [];
+                }
+                
+                const teamRecords = [];
+                
+                for (const teamName in divisionData.matrix) {
+                    const teamGames = divisionData.matrix[teamName];
+                    let wins = 0;
+                    let losses = 0;
+                    let homeWins = 0;
+                    let awayWins = 0;
+                    
+                    // Count games up to this week
+                    for (let w = 1; w <= week; w++) {
+                        const game = teamGames[w];
+                        if (game && game.opponent && game.result) {
+                            if (game.result === 'W') {
+                                wins++;
+                                if (game.homeAway === 'H') {
+                                    homeWins++;
+                                } else {
+                                    awayWins++;
+                                }
+                            } else if (game.result === 'L') {
+                                losses++;
+                            }
+                        }
+                    }
+                    
+                    teamRecords.push({
+                        team: {
+                            name: teamName,
+                            abbreviation: this.getTeamData(teamName)?.abbreviation || teamName.split(' ').map(w => w[0]).join(''),
+                            logo: this.getTeamData(teamName)?.logo || ''
+                        },
+                        wins: wins,
+                        losses: losses,
+                        homeWins: homeWins,
+                        awayWins: awayWins,
+                        record: `${wins}-${losses}`
+                    });
+                }
+                
+                return teamRecords;
             }
 
             renderDivisionSection(division, title) {
