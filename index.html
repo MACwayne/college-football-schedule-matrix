@@ -359,6 +359,32 @@
             opacity: 0.6;
         }
 
+        .empty-game-card {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            height: 100%;
+        }
+
+        .empty-game-card .team-row {
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px dashed #ccc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .empty-game-card .team-row:hover {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-color: #2ecc71;
+        }
+
+        .empty-game-card .team-name-fallback {
+            font-size: 8px;
+            font-weight: 600;
+            color: #666;
+            text-align: center;
+        }
+
 
 
         .week-header {
@@ -2219,10 +2245,38 @@
                     // Re-render the game content
                     this.renderGameCell(cell, teamName, week, game);
                 } else {
-                    // Show empty cell (no opponent)
-                    cell.innerHTML = '';
+                    // Show empty cell (no opponent) - make it droppable
+                    cell.innerHTML = `
+                        <div class="empty-game-card">
+                            <div class="team-row home-team drop-zone" data-position="home">
+                                <span class="score"></span>
+                                <div class="team-logo-container">
+                                    <span class="team-name-fallback">Need Opponent</span>
+                                </div>
+                            </div>
+                            <div class="team-row away-team drop-zone" data-position="away">
+                                <span class="score"></span>
+                                <div class="team-logo-container">
+                                    <span class="team-name-fallback">Need Opponent</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     cell.className = 'matrix-cell empty-cell';
+                    
+                    // Re-attach drag and drop listeners to the new empty cell
+                    this.attachDragAndDropToEmptyCell(cell, teamName, week);
                 }
+            }
+
+            attachDragAndDropToEmptyCell(cell, teamName, week) {
+                // Attach drag and drop listeners to the empty cell's team-rows
+                const teamRows = cell.querySelectorAll('.team-row');
+                teamRows.forEach(teamRow => {
+                    teamRow.addEventListener('dragover', this.handleTeamRowDragOver.bind(this));
+                    teamRow.addEventListener('dragleave', this.handleTeamRowDragLeave.bind(this));
+                    teamRow.addEventListener('drop', this.handleTeamRowDrop.bind(this));
+                });
             }
 
             renderGameCell(cell, teamName, week, game) {
@@ -2469,6 +2523,9 @@
                 const isScored = targetGameCell.getAttribute('data-is-scored') === 'true';
                 const targetIsHome = targetTeamRow.classList.contains('home-team');
                 
+                // Check if this is an empty cell (no opponent)
+                const isEmptyCell = targetGameCell.classList.contains('empty-cell');
+                
                 console.log(`🎯 DROP: Target team = ${targetTeam}, TargetIsHome = ${targetIsHome}`);
 
                 // Don't allow drops on scored games
@@ -2477,8 +2534,8 @@
                     return;
                 }
 
-                // Don't allow dropping on same team
-                if (draggedTeam === targetTeam) {
+                // Don't allow dropping on same team (unless it's an empty cell)
+                if (draggedTeam === targetTeam && !isEmptyCell) {
                     console.log('Cannot drop team on itself');
                     return;
                 }
