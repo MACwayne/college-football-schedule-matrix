@@ -2429,6 +2429,8 @@
                 const source = event.dataTransfer.getData('text/source');
                 const draggedHomeAway = event.dataTransfer.getData('text/home-away');
                 
+                console.log(`🎯 DROP: Dragged team = ${draggedTeam}, Source = ${source}, DraggedHomeAway = ${draggedHomeAway}`);
+                
                 // Find target team-row info
                 const targetTeamRow = event.target;
                 const targetGameCell = targetTeamRow.closest('[data-team]');
@@ -2438,6 +2440,8 @@
                 const targetWeek = targetGameCell.getAttribute('data-week');
                 const isScored = targetGameCell.getAttribute('data-is-scored') === 'true';
                 const targetIsHome = targetTeamRow.classList.contains('home-team');
+                
+                console.log(`🎯 DROP: Target team = ${targetTeam}, TargetIsHome = ${targetIsHome}`);
 
                 // Don't allow drops on scored games
                 if (isScored) {
@@ -2592,14 +2596,22 @@
             }
 
             addTeamToPosition(draggedTeam, targetTeam, week, targetHomeAway) {
+                console.log(`🔧 addTeamToPosition: draggedTeam=${draggedTeam}, targetTeam=${targetTeam}, week=${week}, targetHomeAway=${targetHomeAway}`);
+                
                 const draggedDivision = this.findTeamDivision(draggedTeam);
                 const targetDivision = this.findTeamDivision(targetTeam);
                 
-                if (!draggedDivision || !targetDivision) return;
+                if (!draggedDivision || !targetDivision) {
+                    console.log(`❌ Could not find divisions: draggedDivision=${draggedDivision}, targetDivision=${targetDivision}`);
+                    return;
+                }
 
                 // Update target team's game
                 const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][week];
-                if (!targetGame) return;
+                if (!targetGame) {
+                    console.log(`❌ Could not find target game for ${targetTeam} in week ${week}`);
+                    return;
+                }
 
                 // Determine home/away based on where we're dropping
                 if (targetHomeAway === 'H') {
