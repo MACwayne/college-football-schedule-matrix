@@ -95,6 +95,7 @@
             min-height: 400px;
             width: 100%;
             overflow-x: auto;
+            overflow-y: visible;
             margin-bottom: 30px;
         }
 
@@ -2243,10 +2244,11 @@
                 divisionContent.className = 'division-content';
                 divisionContent.style.display = 'none'; // Start collapsed
                 
-                // Create grid
+                // Create grid with fixed column widths
                 const grid = document.createElement('div');
                 grid.className = 'schedule-matrix';
-                grid.style.gridTemplateColumns = `150px repeat(${maxWeeks}, 100px)`;
+                grid.style.gridTemplateColumns = `150px repeat(${maxWeeks}, 110px)`;
+                grid.style.width = 'fit-content';
 
                 // Add rankings section as first "conference"
                 this.addRankingsConference(grid, division, maxWeeks);
