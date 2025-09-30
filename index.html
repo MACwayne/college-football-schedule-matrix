@@ -2370,6 +2370,13 @@
                 const isScored = gameCell.getAttribute('data-is-scored') === 'true';
                 const isHome = event.target.classList.contains('home-team');
                 
+                console.log(`🔍 DRAG START DEBUG:`);
+                console.log(`  - gameCell data-team: ${teamName}`);
+                console.log(`  - gameCell data-opponent: ${opponent}`);
+                console.log(`  - event.target classes: ${event.target.className}`);
+                console.log(`  - isHome: ${isHome}`);
+                console.log(`  - event.target:`, event.target);
+                
                 // Don't allow dragging from scored games
                 if (isScored) {
                     event.preventDefault();
