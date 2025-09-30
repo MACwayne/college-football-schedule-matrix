@@ -2452,9 +2452,9 @@
                 }
 
                 // Handle the drop based on source
-                // Determine target position: if dropping on home team-row, dragged team becomes away
-                // If dropping on away team-row, dragged team becomes home
-                const targetPosition = targetIsHome ? 'A' : 'H';
+                // Determine target position: if dropping on home team-row, dragged team becomes home
+                // If dropping on away team-row, dragged team becomes away
+                const targetPosition = targetIsHome ? 'H' : 'A';
                 
                 if (source === 'team-row') {
                     this.handleTeamRowToTeamRowDrop(draggedTeam, targetTeam, targetWeek, targetPosition);
