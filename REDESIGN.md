@@ -568,6 +568,27 @@ const MobileScheduleView = () => {
 
 ## Development Phases
 
+### Phase 0: Development Environment Setup (Day 1)
+- [ ] Set up automated screenshot workflow
+- [ ] Configure localtunnel for live preview sharing
+- [ ] Create dev logging utilities
+- [ ] Set up hot reload dev server
+- [ ] Configure AI-assisted development workflow
+
+**Dev Workflow Setup:**
+```json
+// package.json
+{
+  "scripts": {
+    "dev": "vite",
+    "screenshot": "node scripts/screenshot.js",
+    "screenshot:watch": "nodemon --watch src --exec 'npm run screenshot'",
+    "tunnel": "lt --port 5173",
+    "dev:log": "DEBUG=* npm run dev"
+  }
+}
+```
+
 ### Phase 1: Setup & Foundation (Week 1)
 - [ ] Initialize Vite + React + TypeScript project
 - [ ] Set up Tailwind CSS + shadcn/ui
@@ -795,6 +816,120 @@ fetch('/api/games') // Proxies to CFB Data API
 
 ---
 
+## AI-Assisted Development Workflow
+
+### Real-Time Feedback Loop
+
+**Problem:** Waiting for GitHub Pages deployment slows down iteration.
+
+**Solution:** Local dev with visual feedback for AI.
+
+### Recommended Workflow
+
+```bash
+# Terminal 1: Dev server (instant updates)
+npm run dev
+
+# Terminal 2: Auto-capture screenshots on changes
+npm run screenshot:watch
+
+# Terminal 3: Create tunnel when AI needs live access
+npm run tunnel
+```
+
+### Screenshot Automation
+
+```javascript
+// scripts/screenshot.js
+const puppeteer = require('puppeteer');
+
+const captureScreenshots = async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  
+  const viewports = [
+    { name: 'desktop', width: 1920, height: 1080 },
+    { name: 'tablet', width: 768, height: 1024 },
+    { name: 'mobile', width: 375, height: 812 },
+  ];
+  
+  for (const viewport of viewports) {
+    await page.setViewport(viewport);
+    await page.goto('http://localhost:5173');
+    await page.screenshot({ 
+      path: `screenshots/${viewport.name}-${Date.now()}.png`,
+      fullPage: true 
+    });
+  }
+  
+  await browser.close();
+  console.log('✅ Screenshots captured');
+};
+```
+
+### Development Logger
+
+```typescript
+// src/utils/devLogger.ts
+export const DevLogger = {
+  snapshot(label: string, data: any) {
+    const snapshot = {
+      timestamp: new Date().toISOString(),
+      label,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      data,
+    };
+    
+    console.log(`📊 [${label}]`, snapshot);
+    
+    // Save to localStorage for review
+    const snapshots = JSON.parse(localStorage.getItem('dev-snapshots') || '[]');
+    snapshots.push(snapshot);
+    localStorage.setItem('dev-snapshots', JSON.stringify(snapshots));
+  },
+};
+
+// Use throughout app
+DevLogger.snapshot('Schedule Loaded', { teams: data.teams.length });
+DevLogger.snapshot('Game Toggled', { team, week, result });
+```
+
+### Live Preview with Tunneling
+
+```bash
+# Install localtunnel (no signup required)
+npm install -g localtunnel
+
+# Start dev server
+npm run dev
+
+# Create public tunnel
+lt --port 5173
+# Returns: https://abc123.loca.lt
+
+# Share URL with AI for live review
+```
+
+### Benefits
+
+- ⚡ **Instant feedback** - See changes in < 1 second
+- 👁️ **Visual verification** - Screenshots show actual UI
+- 🔗 **Live access** - AI can interact with real app when needed
+- 📊 **State tracking** - Console logs capture app state
+- 🚀 **Fast iteration** - No deployment delays
+
+### Iteration Speed Comparison
+
+| Method | Time to Feedback |
+|--------|-----------------|
+| GitHub Pages deploy | ~2-3 minutes |
+| Local dev + screenshot | ~5 seconds |
+| Local dev + tunnel | ~10 seconds |
+
+**10x-30x faster iteration!**
+
+---
+
 ## Conclusion
 
 ### Recommended Approach
@@ -819,13 +954,42 @@ fetch('/api/games') // Proxies to CFB Data API
 
 ### Next Steps
 
-1. Review this document
-2. Get CFB Data API key
-3. Set up new repo: `college-football-matrix-v2`
-4. Start with Phase 1 (setup)
-5. Ship MVP in 3 weeks
+1. **Review this document** - Understand the architecture
+2. **Get CFB Data API key** - Sign up at collegefootballdata.com
+3. **Set up development workflow** - Install puppeteer, localtunnel
+4. **Create new repo**: `college-football-matrix-v2`
+5. **Start with Phase 0** - Dev environment setup
+6. **Iterate with AI assistance** - Use screenshots + tunneling for feedback
+7. **Ship MVP** in 3-5 weeks with 10x faster iteration
+
+### Development Workflow Benefits
+
+With the AI-assisted workflow, you get:
+- 🎯 **Real-time feedback** on UI changes
+- 🐛 **Faster debugging** with live access
+- 📸 **Visual verification** across devices
+- 🚀 **Rapid iteration** without deployment delays
+- 💬 **Better communication** with visual context
+- ⚡ **10x-30x faster** development cycle
+
+Instead of:
+```
+Make change → Git commit → Git push → Wait 2-3 min → Check GitHub Pages → Repeat
+```
+
+You'll have:
+```
+Make change → npm run screenshot → Share with AI → Get feedback → Iterate
+```
+
+Or for live debugging:
+```
+npm run tunnel → Share URL → AI reviews live → Fix issues in real-time
+```
 
 ---
 
 **Questions?** Let me know what to clarify or expand on!
+
+**See also:** `DEV-WORKFLOW.md` for detailed setup instructions
 
