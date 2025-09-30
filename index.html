@@ -221,13 +221,6 @@
             box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
         }
 
-        .team-row.swap-position {
-            background-color: rgba(255, 193, 7, 0.25);
-            border: 2px dashed #ffc107;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-        }
-
         .team-row.drop-zone {
             min-height: 25px;
             border: 2px dashed transparent;
@@ -409,32 +402,7 @@
         }
 
         .conference-teams {
-            display: none;
-        }
-
-        .conference-teams.expanded {
             display: contents;
-        }
-
-        .conference-controls {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .conference-controls button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 0 10px;
-            transition: background-color 0.2s ease;
-        }
-
-        .conference-controls button:hover {
-            background-color: #2980b9;
         }
 
         .division-header {
@@ -609,19 +577,15 @@
 <body>
     <div class="container">
         <header>
-            <h1>College Football Schedule Matrix - 2024 Season</h1>
+            <h1>College Football Schedule Matrix - 2025 Season</h1>
             <div class="instructions">
-                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag team rows to swap home/away positions • Drag team rows onto themselves to swap home/away within same game • Drag team headers to swap opponents • Teams automatically removed from previous games</p>
+                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag entire team rows (click anywhere on score/logo area) to swap home/away positions • Drag team headers to swap opponents • Teams automatically removed from previous games</p>
             </div>
         </header>
         
         <main>
             <div class="schedule-container">
                 <div id="loadingMessage" class="loading">Loading schedule data...</div>
-                <div class="conference-controls">
-                    <button id="expandAllBtn">Expand All Conferences</button>
-                    <button id="collapseAllBtn">Collapse All Conferences</button>
-                </div>
                 <div id="scheduleMatrix" class="schedule-matrix"></div>
             </div>
         </main>
@@ -646,14 +610,10 @@
 
             async loadInitialData() {
                 try {
-                    console.log('🚀 Starting loadInitialData...');
                     await this.loadAllGames();
-                    console.log('✅ Games loaded, building schedules...');
                     this.buildDivisionSchedule('FBS');
                     this.buildDivisionSchedule('FCS');
-                    console.log('✅ Schedules built, rendering...');
                     this.renderAllDivisions();
-                    console.log('✅ Rendering complete!');
                 } catch (error) {
                     console.error('❌ Error in loadInitialData:', error);
                     console.error('Error stack:', error.stack);
@@ -1328,17 +1288,14 @@
                 try {
                     console.log('🌐 Starting fetchAllGames...');
                     
-                    // Try 2025 season first, fallback to 2024 if needed
-                    let fbsResponse, fcsResponse;
-                    
-                    // Use 2024 season data since 2025 hasn't started yet
-                    console.log('📡 Using 2024 season data...');
-                    [fbsResponse, fcsResponse] = await Promise.all([
-                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&limit=1000`),
-                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&groups=81&limit=1000`)
+                    // Fetch both FBS and FCS games in parallel for 2025 season
+                    console.log('📡 Making API calls...');
+                    const [fbsResponse, fcsResponse] = await Promise.all([
+                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&limit=1000`),
+                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&groups=81&limit=1000`)
                     ]);
                     
-                    console.log(`📊 2024 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
+                    console.log(`📊 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
                     
                     if (!fbsResponse.ok || !fcsResponse.ok) {
                         throw new Error(`ESPN API error! FBS status: ${fbsResponse.status}, FCS status: ${fcsResponse.status}`);
@@ -1351,8 +1308,6 @@
                     ]);
                     
                     console.log(`📈 FBS Events: ${fbsData.events?.length || 0}, FCS Events: ${fcsData.events?.length || 0}`);
-                    console.log('FBS Data:', fbsData);
-                    console.log('FCS Data:', fcsData);
                     
                     // Combine FBS and FCS games
                     const allGames = [
@@ -1361,12 +1316,6 @@
                     ];
                     
                     console.log(`✅ Total games combined: ${allGames.length}`);
-                    
-                    if (allGames.length === 0) {
-                        console.warn('⚠️ No games found! This might be because 2025 season hasn\'t started yet.');
-                        this.showError('No games found. The 2025 season may not have started yet. Please try again later.');
-                    }
-                    
                     return allGames;
                 } catch (error) {
                     console.error('❌ Error in fetchAllGames:', error);
@@ -1770,40 +1719,6 @@
                 
                 // Enable interactive features after rendering
                 this.enableDragAndDrop();
-                this.setupConferenceControls();
-            }
-
-            setupConferenceControls() {
-                const expandAllBtn = document.getElementById('expandAllBtn');
-                const collapseAllBtn = document.getElementById('collapseAllBtn');
-                
-                if (expandAllBtn) {
-                    expandAllBtn.addEventListener('click', () => {
-                        const conferenceHeaders = document.querySelectorAll('.conference-header');
-                        conferenceHeaders.forEach(header => {
-                            header.classList.remove('collapsed');
-                            header.querySelector('.conference-toggle').textContent = '▼';
-                            const weekHeadersRow = header.nextElementSibling;
-                            const conferenceRows = weekHeadersRow.nextElementSibling;
-                            if (weekHeadersRow) weekHeadersRow.style.display = 'contents';
-                            if (conferenceRows) conferenceRows.style.display = 'contents';
-                        });
-                    });
-                }
-                
-                if (collapseAllBtn) {
-                    collapseAllBtn.addEventListener('click', () => {
-                        const conferenceHeaders = document.querySelectorAll('.conference-header');
-                        conferenceHeaders.forEach(header => {
-                            header.classList.add('collapsed');
-                            header.querySelector('.conference-toggle').textContent = '▶';
-                            const weekHeadersRow = header.nextElementSibling;
-                            const conferenceRows = weekHeadersRow.nextElementSibling;
-                            if (weekHeadersRow) weekHeadersRow.style.display = 'none';
-                            if (conferenceRows) conferenceRows.style.display = 'none';
-                        });
-                    });
-                }
             }
 
 
@@ -1857,11 +1772,11 @@
                 divisionData.conferenceGroups.forEach(conferenceGroup => {
                     // Conference header row
                     const conferenceHeader = document.createElement('div');
-                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs collapsed' : 'conference-header collapsed';
+                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs' : 'conference-header';
                     conferenceHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
                     conferenceHeader.style.cursor = 'pointer';
                     conferenceHeader.innerHTML = `
-                        <span class="conference-toggle">▶</span>
+                        <span class="conference-toggle">▼</span>
                         <span class="conference-name">${conferenceGroup.name}</span>
                         <span class="conference-count">(${conferenceGroup.teams.length} teams)</span>
                     `;
@@ -1884,12 +1799,6 @@
                             conferenceRows.style.display = 'none';
                         }
                     });
-                    
-                    // Initially hide the conference content
-                    const weekHeadersRow = conferenceHeader.nextElementSibling;
-                    const conferenceRows = weekHeadersRow.nextElementSibling;
-                    if (weekHeadersRow) weekHeadersRow.style.display = 'none';
-                    if (conferenceRows) conferenceRows.style.display = 'none';
                     
                     grid.appendChild(conferenceHeader);
 
@@ -2449,6 +2358,7 @@
                 
                 const teamName = gameCell.getAttribute('data-team');
                 const week = gameCell.getAttribute('data-week');
+                const opponent = gameCell.getAttribute('data-opponent');
                 const isScored = gameCell.getAttribute('data-is-scored') === 'true';
                 const isHome = event.target.classList.contains('home-team');
                 
@@ -2458,13 +2368,18 @@
                     return;
                 }
                 
+                // Determine which team is actually being dragged
+                const draggedTeamName = isHome ? teamName : opponent;
+                
                 // Store team data for context
-                event.dataTransfer.setData('text/plain', teamName);
+                event.dataTransfer.setData('text/plain', draggedTeamName);
                 event.dataTransfer.setData('text/week', week);
                 event.dataTransfer.setData('text/source', 'team-row');
                 event.dataTransfer.setData('text/home-away', isHome ? 'H' : 'A');
                 event.dataTransfer.effectAllowed = 'move';
                 event.target.classList.add('dragging');
+                
+                console.log(`🎯 Dragging ${draggedTeamName} from team-row (${isHome ? 'home' : 'away'} position)`);
             }
 
             // Removed handleLogoDragStart - now using team-row dragging only
@@ -2474,36 +2389,18 @@
             handleTeamRowDragOver(event) {
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
-                
-                // Check if dragging onto the same team (position swap)
-                const draggedTeam = event.dataTransfer.getData('text/plain');
-                const targetGameCell = event.target.closest('[data-team]');
-                if (targetGameCell) {
-                    const targetTeam = targetGameCell.getAttribute('data-team');
-                    if (draggedTeam === targetTeam) {
-                        event.target.classList.add('swap-position');
-                        event.target.classList.remove('drag-over');
-                    } else {
-                        event.target.classList.add('drag-over');
-                        event.target.classList.remove('swap-position');
-                    }
-                } else {
-                    event.target.classList.add('drag-over');
-                    event.target.classList.remove('swap-position');
-                }
+                event.target.classList.add('drag-over');
             }
 
             handleTeamRowDragLeave(event) {
                 event.target.classList.remove('drag-over');
-                event.target.classList.remove('swap-position');
             }
 
             handleTeamRowDrop(event) {
                 event.preventDefault();
                 
-                // Remove drag-over and swap-position classes
+                // Remove drag-over class
                 event.target.classList.remove('drag-over');
-                event.target.classList.remove('swap-position');
                 
                 const draggedTeam = event.dataTransfer.getData('text/plain');
                 const draggedWeek = event.dataTransfer.getData('text/week');
@@ -2526,10 +2423,9 @@
                     return;
                 }
 
-                // Allow dropping on same team (swapping home/away positions)
+                // Don't allow dropping on same team
                 if (draggedTeam === targetTeam) {
-                    console.log(`🔄 Swapping home/away positions for ${draggedTeam} in week ${targetWeek}`);
-                    this.swapHomeAwayPositions(draggedTeam, targetWeek);
+                    console.log('Cannot drop team on itself');
                     return;
                 }
 
@@ -2552,46 +2448,29 @@
 
             // Removed handleLogoToTeamRowDrop - now using team-row dragging only
 
-            swapHomeAwayPositions(teamName, week) {
-                console.log(`🔄 Swapping home/away positions for ${teamName} in week ${week}`);
-                
-                const division = this.findTeamDivision(teamName);
-                if (!division) return;
-
-                const teamGame = this.scheduleData[division].matrix[teamName][week];
-                if (!teamGame || !teamGame.opponent) {
-                    console.log('No game found to swap positions');
-                    return;
-                }
-
-                // Toggle the home/away position
-                const newHomeAway = teamGame.homeAway === 'H' ? 'A' : 'H';
-                teamGame.homeAway = newHomeAway;
-
-                // Update the opponent's reverse game
-                const opponentDivision = this.findTeamDivision(teamGame.opponent);
-                if (opponentDivision) {
-                    const opponentGame = this.scheduleData[opponentDivision].matrix[teamGame.opponent][week];
-                    if (opponentGame) {
-                        opponentGame.homeAway = newHomeAway === 'H' ? 'A' : 'H';
-                        this.updateCellDisplay(teamGame.opponent, week, opponentGame);
-                    }
-                }
-
-                // Update the team's own cell display
-                this.updateCellDisplay(teamName, week, teamGame);
-                
-                console.log(`✅ ${teamName} is now ${newHomeAway === 'H' ? 'home' : 'away'} in week ${week}`);
-            }
-
             performTeamDrop(draggedTeam, targetTeam, targetWeek, targetHomeAway) {
                 console.log(`Moving ${draggedTeam} to play ${targetTeam} in week ${targetWeek} as ${targetHomeAway === 'H' ? 'home' : 'away'}`);
                 
                 // Step 1: Remove dragged team from ALL games this week
                 this.removeTeamFromAllGamesThisWeek(draggedTeam, targetWeek);
                 
-                // Step 2: Remove any team currently in the target position
-                this.removeTeamFromPosition(targetTeam, targetWeek, targetHomeAway);
+                // Step 2: Determine which team is currently in the target position and remove them
+                const targetDivision = this.findTeamDivision(targetTeam);
+                if (targetDivision) {
+                    const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][targetWeek];
+                    if (targetGame && targetGame.opponent) {
+                        // Find which team is in the target position (home or away)
+                        const currentHomeTeam = targetGame.homeAway === 'H' ? targetTeam : targetGame.opponent;
+                        const currentAwayTeam = targetGame.homeAway === 'H' ? targetGame.opponent : targetTeam;
+                        
+                        const teamToReplace = targetHomeAway === 'H' ? currentHomeTeam : currentAwayTeam;
+                        
+                        if (teamToReplace && teamToReplace !== draggedTeam) {
+                            console.log(`🗑️ Removing ${teamToReplace} from target position`);
+                            this.removeTeamFromAllGamesThisWeek(teamToReplace, targetWeek);
+                        }
+                    }
+                }
                 
                 // Step 3: Add dragged team to target position
                 this.addTeamToPosition(draggedTeam, targetTeam, targetWeek, targetHomeAway);
