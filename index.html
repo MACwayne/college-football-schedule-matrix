@@ -2354,6 +2354,11 @@
                                         
                                         // Debug: Let's see what's happening with score parsing
                                         console.log(`Score Debug: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
+                                        
+                                        // Debug: Show which team's score is which
+                                        const rowTeamScore = isHome ? homeScore : awayScore;
+                                        const opponentScore = isHome ? awayScore : homeScore;
+                                        console.log(`  Row team (${team.name}) score: ${rowTeamScore}, Opponent (${game.opponent}) score: ${opponentScore}`);
                                     }
                                 }
                                 
@@ -2373,6 +2378,9 @@
                                     const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
                                     const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
                                     const isTie = homeScoreNum === awayScoreNum;
+                                    
+                                    // Debug: Show win/loss calculation
+                                    console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     
                                     
                                     if (rowTeamWon) {
@@ -2570,6 +2578,11 @@
                                         
                                         // Debug: Let's see what's happening with score parsing
                                         console.log(`Score Debug: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
+                                        
+                                        // Debug: Show which team's score is which
+                                        const rowTeamScore = isHome ? homeScore : awayScore;
+                                        const opponentScore = isHome ? awayScore : homeScore;
+                                        console.log(`  Row team (${team.name}) score: ${rowTeamScore}, Opponent (${game.opponent}) score: ${opponentScore}`);
                                     }
                                 }
                                 
@@ -2589,6 +2602,9 @@
                                     const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
                                     const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
                                     const isTie = homeScoreNum === awayScoreNum;
+                                    
+                                    // Debug: Show win/loss calculation
+                                    console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     
                                     
                                     if (rowTeamWon) {
