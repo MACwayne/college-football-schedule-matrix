@@ -477,6 +477,134 @@
         .division-content {
             margin-bottom: 30px;
         }
+
+        .rankings-section {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 20px 0;
+            padding: 15px;
+        }
+
+        .rankings-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 15px;
+            margin: -15px -15px 15px -15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rankings-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .ranking-card {
+            background-color: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .ranking-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .ranking-card.top-3 {
+            border: 2px solid #ffd700;
+            background: linear-gradient(135deg, #fff9c4, #ffffff);
+        }
+
+        .ranking-card.top-3:nth-child(1) {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #fff9c4, #ffffff);
+        }
+
+        .ranking-card.top-3:nth-child(2) {
+            border-color: #c0c0c0;
+            background: linear-gradient(135deg, #f5f5f5, #ffffff);
+        }
+
+        .ranking-card.top-3:nth-child(3) {
+            border-color: #cd7f32;
+            background: linear-gradient(135deg, #f4e4bc, #ffffff);
+        }
+
+        .ranking-logo {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 5px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+
+        .ranking-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .ranking-logo .team-name-fallback {
+            font-size: 8px;
+            font-weight: bold;
+            color: #666;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .ranking-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 2px;
+        }
+
+        .ranking-change {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+            display: inline-block;
+            min-width: 20px;
+        }
+
+        .ranking-change.positive {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .ranking-change.negative {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .ranking-change.neutral {
+            background-color: #e2e3e5;
+            color: #6c757d;
+        }
+
+        .ranking-team-name {
+            font-size: 10px;
+            font-weight: 600;
+            color: #495057;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
         
         .conference-header.non-fcs {
             background: linear-gradient(135deg, #ffebee, #fce4ec);
@@ -1755,10 +1883,96 @@
             }
 
 
+            renderRankingsSection(division, title, container) {
+                // Create rankings section
+                const rankingsSection = document.createElement('div');
+                rankingsSection.className = 'rankings-section';
+                
+                // Rankings header
+                const rankingsHeader = document.createElement('div');
+                rankingsHeader.className = 'rankings-header';
+                rankingsHeader.innerHTML = `
+                    <span>🏆</span>
+                    <span>Weekly Rankings - Top 10</span>
+                `;
+                rankingsSection.appendChild(rankingsHeader);
+                
+                // Rankings grid
+                const rankingsGrid = document.createElement('div');
+                rankingsGrid.className = 'rankings-grid';
+                
+                // Generate sample rankings data
+                const rankings = this.generateRankings(division);
+                
+                rankings.forEach((team, index) => {
+                    const rankingCard = document.createElement('div');
+                    rankingCard.className = `ranking-card ${index < 3 ? 'top-3' : ''}`;
+                    
+                    const changeClass = team.change > 0 ? 'positive' : team.change < 0 ? 'negative' : 'neutral';
+                    const changeText = team.change > 0 ? `+${team.change}` : team.change < 0 ? `${team.change}` : '-';
+                    
+                    rankingCard.innerHTML = `
+                        <div class="ranking-logo">
+                            <img src="${team.logo}" alt="${team.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="team-name-fallback" style="display: none;">${team.abbreviation}</div>
+                        </div>
+                        <div class="ranking-number">${index + 1}</div>
+                        <div class="ranking-change ${changeClass}">${changeText}</div>
+                        <div class="ranking-team-name">${team.abbreviation}</div>
+                    `;
+                    
+                    rankingsGrid.appendChild(rankingCard);
+                });
+                
+                rankingsSection.appendChild(rankingsGrid);
+                container.appendChild(rankingsSection);
+            }
+
+            generateRankings(division) {
+                // Sample rankings data - in a real app, this would come from an API
+                const sampleTeams = {
+                    'FBS': [
+                        { name: 'Georgia Bulldogs', abbreviation: 'UGA', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/61.png' },
+                        { name: 'Alabama Crimson Tide', abbreviation: 'ALA', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/333.png' },
+                        { name: 'Ohio State Buckeyes', abbreviation: 'OSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/194.png' },
+                        { name: 'Michigan Wolverines', abbreviation: 'MICH', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/130.png' },
+                        { name: 'Texas Longhorns', abbreviation: 'TEX', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/251.png' },
+                        { name: 'Oregon Ducks', abbreviation: 'ORE', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png' },
+                        { name: 'Penn State Nittany Lions', abbreviation: 'PSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/255.png' },
+                        { name: 'Florida State Seminoles', abbreviation: 'FSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/52.png' },
+                        { name: 'Notre Dame Fighting Irish', abbreviation: 'ND', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/87.png' },
+                        { name: 'LSU Tigers', abbreviation: 'LSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/99.png' }
+                    ],
+                    'FCS': [
+                        { name: 'South Dakota State Jackrabbits', abbreviation: 'SDSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2571.png' },
+                        { name: 'Montana Grizzlies', abbreviation: 'MONT', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/147.png' },
+                        { name: 'North Dakota State Bison', abbreviation: 'NDSU', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2550.png' },
+                        { name: 'Furman Paladins', abbreviation: 'FUR', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/61.png' },
+                        { name: 'Idaho Vandals', abbreviation: 'IDAHO', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/70.png' },
+                        { name: 'Montana State Bobcats', abbreviation: 'MTST', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/147.png' },
+                        { name: 'Sacramento State Hornets', abbreviation: 'SAC', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2569.png' },
+                        { name: 'Delaware Blue Hens', abbreviation: 'DEL', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/45.png' },
+                        { name: 'Villanova Wildcats', abbreviation: 'NOVA', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/222.png' },
+                        { name: 'Austin Peay Governors', abbreviation: 'AP', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png' }
+                    ]
+                };
+                
+                const teams = sampleTeams[division] || [];
+                
+                // Add random rank changes for demo
+                return teams.map(team => ({
+                    ...team,
+                    change: Math.floor(Math.random() * 7) - 3 // Random change between -3 and +3
+                }));
+            }
+
             renderDivisionSection(division, title) {
                 const matrixContainer = document.getElementById('scheduleMatrix');
                 const divisionData = this.scheduleData[division];
                 if (!divisionData) return;
+
+                // Add rankings section
+                this.renderRankingsSection(division, title, matrixContainer);
 
                 // Get the maximum number of weeks to align with shared headers
                 const fbsWeeks = this.scheduleData.FBS ? this.scheduleData.FBS.weeks.length : 0;
