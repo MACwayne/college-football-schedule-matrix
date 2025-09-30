@@ -2697,6 +2697,18 @@
                     return;
                 }
 
+                // Check if there's already a team in the target position and remove them
+                if (targetGame.opponent) {
+                    const currentHomeTeam = targetGame.homeAway === 'H' ? targetTeam : targetGame.opponent;
+                    const currentAwayTeam = targetGame.homeAway === 'H' ? targetGame.opponent : targetTeam;
+                    const teamInTargetPosition = targetHomeAway === 'H' ? currentHomeTeam : currentAwayTeam;
+                    
+                    if (teamInTargetPosition && teamInTargetPosition !== draggedTeam) {
+                        console.log(`🗑️ Removing ${teamInTargetPosition} from target position to make room for ${draggedTeam}`);
+                        this.removeTeamFromCurrentPosition(teamInTargetPosition, week);
+                    }
+                }
+
                 // Determine home/away based on where we're dropping
                 if (targetHomeAway === 'H') {
                     // Dragged team becomes home, target team becomes away
