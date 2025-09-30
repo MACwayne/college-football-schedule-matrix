@@ -2606,14 +2606,14 @@
                     // Dragged team becomes home, target team becomes away
                     targetGame.opponent = draggedTeam;
                     targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
-                    targetGame.homeAway = 'A'; // Target team is away
+                    targetGame.homeAway = 'A'; // Target team (row owner) is away, so opponent (dragged team) is home
                     
                     // Update dragged team's game
                     const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
                     if (draggedGame) {
                         draggedGame.opponent = targetTeam;
                         draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
-                        draggedGame.homeAway = 'H'; // Dragged team is home
+                        draggedGame.homeAway = 'H'; // Dragged team (row owner) is home, so opponent (target team) is away
                     }
                     
                     console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${draggedTeam} home, ${targetTeam} away)`);
@@ -2621,14 +2621,14 @@
                     // Dragged team becomes away, target team becomes home
                     targetGame.opponent = draggedTeam;
                     targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
-                    targetGame.homeAway = 'H'; // Target team is home
+                    targetGame.homeAway = 'H'; // Target team (row owner) is home, so opponent (dragged team) is away
                     
                     // Update dragged team's game
                     const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
                     if (draggedGame) {
                         draggedGame.opponent = targetTeam;
                         draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
-                        draggedGame.homeAway = 'A'; // Dragged team is away
+                        draggedGame.homeAway = 'A'; // Dragged team (row owner) is away, so opponent (target team) is home
                     }
                     
                     console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${targetTeam} home, ${draggedTeam} away)`);
