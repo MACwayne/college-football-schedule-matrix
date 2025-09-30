@@ -177,36 +177,48 @@
             flex-direction: row;
             align-items: center;
             justify-content: flex-start;
-            padding: 2px 8px 2px 4px;
-            min-height: 20px;
+            padding: 4px 12px;
+            min-height: 24px;
             gap: 18px;
             cursor: grab;
             transition: all 0.2s ease;
-            border-radius: 3px;
+            border-radius: 12px;
             user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         .team-row:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: rgba(52, 152, 219, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border-color: rgba(52, 152, 219, 0.3);
         }
 
         .team-row:active {
             cursor: grabbing;
-            transform: scale(0.98);
+            transform: scale(0.95);
+            background-color: rgba(52, 152, 219, 0.2);
         }
 
         .team-row.dragging {
-            opacity: 0.6;
-            transform: rotate(2deg);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0.7;
+            transform: rotate(3deg) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            background-color: rgba(52, 152, 219, 0.2);
+            border-color: rgba(52, 152, 219, 0.5);
+            z-index: 1000;
         }
 
         .team-row.drag-over {
-            background-color: rgba(46, 204, 113, 0.2);
+            background-color: rgba(46, 204, 113, 0.25);
             border: 2px dashed #2ecc71;
-            transform: scale(1.02);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
         }
 
         .team-row.drop-zone {
@@ -218,6 +230,38 @@
         .team-row.drop-zone:hover {
             border-color: #3498db;
             background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        /* Prevent text selection on all team-row content */
+        .team-row * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            pointer-events: none;
+        }
+
+        /* Re-enable pointer events for the team-row itself */
+        .team-row {
+            pointer-events: auto;
+        }
+
+        /* Make logos non-draggable and non-selectable */
+        .team-logo {
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Make scores non-selectable */
+        .score {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            pointer-events: none;
         }
 
         .team-row.home-team {
@@ -245,16 +289,7 @@
             height: 16px;
             object-fit: contain;
             border-radius: 2px;
-            cursor: grab;
             transition: transform 0.2s ease;
-        }
-
-        .team-logo:hover {
-            transform: scale(1.1);
-        }
-
-        .team-logo:active {
-            cursor: grabbing;
         }
 
         .team-name-fallback {
@@ -464,16 +499,7 @@
             height: 32px;
             object-fit: contain;
             border-radius: 4px;
-            cursor: grab;
             transition: transform 0.2s ease;
-        }
-
-        .team-logo:hover {
-            transform: scale(1.1);
-        }
-
-        .team-logo:active {
-            cursor: grabbing;
         }
 
         .team-name {
