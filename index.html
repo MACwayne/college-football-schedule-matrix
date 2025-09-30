@@ -2153,6 +2153,7 @@
                 }
                 
                 const teamRecords = [];
+                let teamsWithResults = 0;
                 
                 for (const teamName in divisionData.matrix) {
                     const teamGames = divisionData.matrix[teamName];
@@ -2165,6 +2166,7 @@
                     for (let w = 1; w <= week; w++) {
                         const game = teamGames[w];
                         if (game && game.opponent && game.result) {
+                            teamsWithResults++;
                             if (game.result === 'W') {
                                 wins++;
                                 if (game.homeAway === 'H') {
@@ -2191,6 +2193,8 @@
                         record: `${wins}-${losses}`
                     });
                 }
+                
+                console.log(`📈 calculateTeamRecords: ${division}, week ${week}, found ${teamsWithResults} games with results, ${teamRecords.filter(r => r.wins > 0 || r.losses > 0).length} teams with records`);
                 
                 return teamRecords;
             }
@@ -2716,6 +2720,8 @@
                     newResult = '';
                 }
 
+                console.log(`🎮 Toggle Game: ${teamName} vs ${game.opponent}, week ${week}, ${currentResult || 'none'} -> ${newResult || 'none'}`);
+
                 // Update the game result
                 game.result = newResult;
                 
@@ -2724,6 +2730,8 @@
                 
                 // Update the reverse game (opponent's schedule)
                 this.updateReverseGame(teamName, week, game, newResult);
+                
+                console.log(`📊 Updating rankings from week ${week}...`);
                 
                 // Update rankings after game result change, starting from this week
                 this.updateRankingsFromWeek(parseInt(week));
