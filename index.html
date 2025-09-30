@@ -2477,23 +2477,23 @@
             performTeamDrop(draggedTeam, targetTeam, targetWeek, targetHomeAway) {
                 console.log(`Moving ${draggedTeam} to play ${targetTeam} in week ${targetWeek} as ${targetHomeAway === 'H' ? 'home' : 'away'}`);
                 
-                // Step 1: Remove dragged team from ALL games this week
-                this.removeTeamFromAllGamesThisWeek(draggedTeam, targetWeek);
+                // Step 1: Remove dragged team from their current position (if they have one)
+                this.removeTeamFromCurrentPosition(draggedTeam, targetWeek);
                 
-                // Step 2: Determine which team is currently in the target position and remove them
+                // Step 2: Check if there's already a team in the target position and remove them
                 const targetDivision = this.findTeamDivision(targetTeam);
                 if (targetDivision) {
                     const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][targetWeek];
                     if (targetGame && targetGame.opponent) {
-                        // Find which team is in the target position (home or away)
+                        // Find which team is currently in the target position
                         const currentHomeTeam = targetGame.homeAway === 'H' ? targetTeam : targetGame.opponent;
                         const currentAwayTeam = targetGame.homeAway === 'H' ? targetGame.opponent : targetTeam;
                         
-                        const teamToReplace = targetHomeAway === 'H' ? currentHomeTeam : currentAwayTeam;
+                        const teamInTargetPosition = targetHomeAway === 'H' ? currentHomeTeam : currentAwayTeam;
                         
-                        if (teamToReplace && teamToReplace !== draggedTeam) {
-                            console.log(`🗑️ Removing ${teamToReplace} from target position`);
-                            this.removeTeamFromAllGamesThisWeek(teamToReplace, targetWeek);
+                        if (teamInTargetPosition && teamInTargetPosition !== draggedTeam) {
+                            console.log(`🗑️ Removing ${teamInTargetPosition} from target position`);
+                            this.removeTeamFromCurrentPosition(teamInTargetPosition, targetWeek);
                         }
                     }
                 }
@@ -2503,6 +2503,42 @@
                 
                 // Step 4: Update all affected cells
                 this.updateAllAffectedCells(draggedTeam, targetTeam, targetWeek);
+            }
+
+            removeTeamFromCurrentPosition(teamName, week) {
+                console.log(`🔍 Removing ${teamName} from their current position in week ${week}`);
+                
+                // Find and clear the team's current game
+                const teamDivision = this.findTeamDivision(teamName);
+                if (teamDivision) {
+                    const teamGame = this.scheduleData[teamDivision].matrix[teamName][week];
+                    if (teamGame && teamGame.opponent) {
+                        const opponentName = teamGame.opponent; // Store before clearing
+                        console.log(`🗑️ Clearing ${teamName}'s game with ${opponentName} in week ${week}`);
+                        
+                        // Clear the team's game
+                        teamGame.opponent = null;
+                        teamGame.opponentLogo = '';
+                        teamGame.homeAway = '';
+                        teamGame.result = '';
+                        
+                        // Update the team's cell display
+                        this.updateCellDisplay(teamName, week, teamGame);
+                        
+                        // Also clear the opponent's reverse game
+                        const opponentDivision = this.findTeamDivision(opponentName);
+                        if (opponentDivision) {
+                            const opponentGame = this.scheduleData[opponentDivision].matrix[opponentName][week];
+                            if (opponentGame) {
+                                opponentGame.opponent = null;
+                                opponentGame.opponentLogo = '';
+                                opponentGame.homeAway = '';
+                                opponentGame.result = '';
+                                this.updateCellDisplay(opponentName, week, opponentGame);
+                            }
+                        }
+                    }
+                }
             }
 
             removeTeamFromAllGamesThisWeek(teamName, week) {
