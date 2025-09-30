@@ -628,6 +628,16 @@
             border-left: 4px solid #f44336;
             color: #c62828;
         }
+
+        .conference-header.rankings-conference {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-left: 4px solid #ff9800;
+            color: #e65100;
+        }
+
+        .conference-header.rankings-conference .conference-name {
+            font-weight: bold;
+        }
         
         .conference-header.non-fcs .conference-name {
             font-style: italic;
@@ -1900,50 +1910,84 @@
             }
 
 
-            renderRankingsSection(division, title, container) {
-                // Create rankings section
-                const rankingsSection = document.createElement('div');
-                rankingsSection.className = 'rankings-section';
-                
-                // Rankings header
+            addRankingsConference(grid, division, maxWeeks) {
+                // Create rankings conference header
                 const rankingsHeader = document.createElement('div');
-                rankingsHeader.className = 'rankings-header';
+                rankingsHeader.className = 'conference-header rankings-conference collapsed';
+                rankingsHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
+                rankingsHeader.style.cursor = 'pointer';
                 rankingsHeader.innerHTML = `
-                    <span>🏆</span>
-                    <span>Weekly Rankings - Top 10</span>
+                    <span class="conference-toggle">▶</span>
+                    <span class="conference-name">🏆 Weekly Rankings - Top 10</span>
+                    <span class="conference-count">(10 teams)</span>
                 `;
-                rankingsSection.appendChild(rankingsHeader);
                 
-                // Create rankings matrix
-                const rankingsMatrix = document.createElement('div');
-                rankingsMatrix.className = 'rankings-matrix';
+                // Add click handler for toggle
+                rankingsHeader.addEventListener('click', () => {
+                    const isCollapsed = rankingsHeader.classList.contains('collapsed');
+                    const weekHeadersRow = rankingsHeader.nextElementSibling;
+                    const rankingsRows = weekHeadersRow.nextElementSibling;
+                    
+                    if (isCollapsed) {
+                        rankingsHeader.classList.remove('collapsed');
+                        rankingsHeader.querySelector('.conference-toggle').textContent = '▼';
+                        weekHeadersRow.style.display = 'contents';
+                        rankingsRows.style.display = 'contents';
+                    } else {
+                        rankingsHeader.classList.add('collapsed');
+                        rankingsHeader.querySelector('.conference-toggle').textContent = '▶';
+                        weekHeadersRow.style.display = 'none';
+                        rankingsRows.style.display = 'none';
+                    }
+                });
                 
-                // Generate sample rankings data for 15 weeks
-                const rankingsData = this.generateWeeklyRankings(division, 15);
+                grid.appendChild(rankingsHeader);
+
+                // Add week headers for rankings
+                const weekHeadersRow = document.createElement('div');
+                weekHeadersRow.className = 'week-headers-row';
+                weekHeadersRow.style.display = 'none'; // Start collapsed
                 
-                // Add empty header for first column
-                const emptyHeader = document.createElement('div');
-                emptyHeader.className = 'rankings-empty-header';
-                emptyHeader.style.gridColumn = '1';
-                rankingsMatrix.appendChild(emptyHeader);
+                // Teams header
+                const teamsHeader = document.createElement('div');
+                teamsHeader.className = 'week-header teams-header';
+                teamsHeader.textContent = 'Rank';
+                weekHeadersRow.appendChild(teamsHeader);
                 
-                // Add week headers
-                for (let week = 1; week <= 15; week++) {
+                // Week headers
+                for (let week = 1; week <= maxWeeks; week++) {
                     const weekHeader = document.createElement('div');
-                    weekHeader.className = 'rankings-header-cell';
+                    weekHeader.className = 'week-header';
                     weekHeader.textContent = `W${week}`;
-                    weekHeader.style.gridColumn = `${week + 1}`;
-                    rankingsMatrix.appendChild(weekHeader);
+                    weekHeadersRow.appendChild(weekHeader);
                 }
                 
-                // Add team rows - each row represents a rank position (1-10)
+                grid.appendChild(weekHeadersRow);
+
+                // Create container for rankings rows
+                const rankingsRows = document.createElement('div');
+                rankingsRows.className = 'conference-teams';
+                rankingsRows.style.display = 'none'; // Start collapsed
+
+                // Generate rankings data
+                const rankingsData = this.generateWeeklyRankings(division, maxWeeks);
+                
+                // Add ranking rows (1st place, 2nd place, etc.)
                 for (let rank = 1; rank <= 10; rank++) {
-                    // Find the team that holds this rank in each week
-                    for (let week = 1; week <= 15; week++) {
+                    // Create team header for this rank
+                    const teamHeader = document.createElement('div');
+                    teamHeader.className = 'team-header';
+                    teamHeader.textContent = `#${rank}`;
+                    teamHeader.style.gridColumn = '1';
+                    teamHeader.style.gridRow = `${rank + 2}`;
+                    rankingsRows.appendChild(teamHeader);
+                    
+                    // Add week cells for this rank
+                    for (let week = 1; week <= maxWeeks; week++) {
                         const weekCell = document.createElement('div');
-                        weekCell.className = `rankings-cell ${rank <= 3 ? 'top-3' : ''}`;
+                        weekCell.className = `matrix-cell ${rank <= 3 ? 'top-3' : ''}`;
                         weekCell.style.gridColumn = `${week + 1}`;
-                        weekCell.style.gridRow = `${rank + 1}`;
+                        weekCell.style.gridRow = `${rank + 2}`;
                         
                         // Find team with this rank in this week
                         const teamForThisRank = rankingsData.find(team => 
@@ -1959,25 +2003,24 @@
                             const record = weekData.record ? weekData.record.record : '0-0';
                             
                             weekCell.innerHTML = `
-                                <div class="rankings-team-logo">
+                                <div class="team-logo-container" style="width: 30px; height: 30px; margin: 0 auto 4px;">
                                     <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                     <div class="team-name-fallback" style="display: none;">${teamForThisRank.abbreviation}</div>
                                 </div>
-                                <div class="rankings-number">${rank}</div>
-                                <div class="rankings-record">${record}</div>
-                                <div class="rankings-change ${changeClass}">${changeText}</div>
+                                <div style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">${rank}</div>
+                                <div style="font-size: 8px; color: #666; margin-bottom: 2px;">${record}</div>
+                                <div class="rankings-change ${changeClass}" style="font-size: 8px; padding: 1px 2px; border-radius: 2px;">${changeText}</div>
                             `;
                         } else {
                             // Empty cell if no team has this rank
                             weekCell.innerHTML = '';
                         }
                         
-                        rankingsMatrix.appendChild(weekCell);
+                        rankingsRows.appendChild(weekCell);
                     }
                 }
                 
-                rankingsSection.appendChild(rankingsMatrix);
-                container.appendChild(rankingsSection);
+                grid.appendChild(rankingsRows);
             }
 
             generateWeeklyRankings(division, numWeeks) {
@@ -2120,9 +2163,6 @@
                 const divisionData = this.scheduleData[division];
                 if (!divisionData) return;
 
-                // Add rankings section
-                this.renderRankingsSection(division, title, matrixContainer);
-
                 // Get the maximum number of weeks to align with shared headers
                 const fbsWeeks = this.scheduleData.FBS ? this.scheduleData.FBS.weeks.length : 0;
                 const fcsWeeks = this.scheduleData.FCS ? this.scheduleData.FCS.weeks.length : 0;
@@ -2164,6 +2204,9 @@
                 const grid = document.createElement('div');
                 grid.className = 'schedule-matrix';
                 grid.style.gridTemplateColumns = `150px repeat(${maxWeeks}, 100px)`;
+
+                // Add rankings section as first "conference"
+                this.addRankingsConference(grid, division, maxWeeks);
 
                 // Add conference groups
                 divisionData.conferenceGroups.forEach(conferenceGroup => {
