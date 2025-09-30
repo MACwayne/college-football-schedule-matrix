@@ -2083,9 +2083,12 @@
                         const aScore = (a.awayWins * 1.2 + a.homeWins * 1.0) - a.losses;
                         const bScore = (b.awayWins * 1.2 + b.homeWins * 1.0) - b.losses;
                         
-                        // Add some randomness to create movement between weeks
-                        const randomFactor = (Math.random() - 0.5) * 0.1;
-                        return (bScore - aScore) + randomFactor;
+                        // If scores are equal, use team name as tiebreaker for stable sort
+                        if (aScore === bScore) {
+                            return a.team.name.localeCompare(b.team.name);
+                        }
+                        
+                        return bScore - aScore;
                     });
                     
                     // Assign ranks 1-10 to top teams
