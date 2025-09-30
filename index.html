@@ -2729,6 +2729,10 @@
                     
                     console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${targetTeam} home, ${draggedTeam} away)`);
                 }
+
+                // Update both cells to reflect the new game
+                this.updateCellDisplay(targetTeam, week, targetGame);
+                this.updateCellDisplay(draggedTeam, week, this.scheduleData[draggedDivision].matrix[draggedTeam][week]);
             }
 
             updateAllAffectedCells(draggedTeam, targetTeam, week) {
