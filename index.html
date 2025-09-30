@@ -2522,7 +2522,7 @@
             removeTeamFromCurrentPosition(teamName, week) {
                 console.log(`🔍 Removing ${teamName} from their current position in week ${week}`);
                 
-                // Only remove the team from their own row (where they are the row owner)
+                // Remove the team from their own row (where they are the row owner)
                 const teamDivision = this.findTeamDivision(teamName);
                 if (teamDivision) {
                     const teamGame = this.scheduleData[teamDivision].matrix[teamName][week];
@@ -2540,6 +2540,33 @@
                         this.updateCellDisplay(teamName, week, teamGame);
                         
                         console.log(`✅ ${teamName} removed from their own row`);
+                    }
+                }
+                
+                // Also remove the team from any row where they appear as an opponent
+                for (const division in this.scheduleData) {
+                    const divisionData = this.scheduleData[division];
+                    if (!divisionData.matrix) continue;
+                    
+                    for (const otherTeamName in divisionData.matrix) {
+                        const otherTeamGames = divisionData.matrix[otherTeamName];
+                        if (!otherTeamGames || !otherTeamGames[week]) continue;
+                        
+                        const game = otherTeamGames[week];
+                        if (game.opponent === teamName) {
+                            console.log(`🗑️ Removing ${teamName} from ${otherTeamName}'s row as opponent`);
+                            
+                            // Clear the opponent reference
+                            game.opponent = null;
+                            game.opponentLogo = '';
+                            game.homeAway = '';
+                            game.result = '';
+                            
+                            // Update the other team's cell display
+                            this.updateCellDisplay(otherTeamName, week, game);
+                            
+                            console.log(`✅ ${otherTeamName} now shows as having no opponent`);
+                        }
                     }
                 }
             }
