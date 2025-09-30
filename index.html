@@ -1912,42 +1912,21 @@
 
 
             addRankingsConference(grid, division, maxWeeks) {
-                // Create rankings conference header
+                // Create rankings section header (non-collapsible, always visible with division)
                 const rankingsHeader = document.createElement('div');
-                rankingsHeader.className = 'conference-header rankings-conference collapsed';
+                rankingsHeader.className = 'conference-header rankings-conference';
                 rankingsHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
-                rankingsHeader.style.cursor = 'pointer';
                 rankingsHeader.innerHTML = `
-                    <span class="conference-toggle">▶</span>
                     <span class="conference-name">🏆 Weekly Rankings - Top 20</span>
                     <span class="conference-count">(20 teams)</span>
                 `;
-                
-                // Add click handler for toggle
-                rankingsHeader.addEventListener('click', () => {
-                    const isCollapsed = rankingsHeader.classList.contains('collapsed');
-                    const weekHeadersRow = rankingsHeader.nextElementSibling;
-                    const rankingsRows = weekHeadersRow.nextElementSibling;
-                    
-                    if (isCollapsed) {
-                        rankingsHeader.classList.remove('collapsed');
-                        rankingsHeader.querySelector('.conference-toggle').textContent = '▼';
-                        weekHeadersRow.style.display = 'contents';
-                        rankingsRows.style.display = 'contents';
-                    } else {
-                        rankingsHeader.classList.add('collapsed');
-                        rankingsHeader.querySelector('.conference-toggle').textContent = '▶';
-                        weekHeadersRow.style.display = 'none';
-                        rankingsRows.style.display = 'none';
-                    }
-                });
                 
                 grid.appendChild(rankingsHeader);
 
                 // Add week headers for rankings
                 const weekHeadersRow = document.createElement('div');
                 weekHeadersRow.className = 'week-headers-row';
-                weekHeadersRow.style.display = 'none'; // Start collapsed
+                weekHeadersRow.style.display = 'contents'; // Always visible
                 
                 // Teams header
                 const teamsHeader = document.createElement('div');
@@ -1968,7 +1947,7 @@
                 // Create container for rankings rows
                 const rankingsRows = document.createElement('div');
                 rankingsRows.className = 'conference-teams';
-                rankingsRows.style.display = 'none'; // Start collapsed
+                rankingsRows.style.display = 'contents'; // Always visible
 
                 // Generate rankings data
                 const rankingsData = this.generateWeeklyRankings(division, maxWeeks);
@@ -2919,10 +2898,8 @@
                 // Get the number of weeks
                 const maxWeeks = parseInt(grid.style.gridTemplateColumns.split('repeat(')[1].split(',')[0]);
                 
-                // Check if rankings were expanded before removal
+                // Remove old rankings section
                 const oldRankingsHeader = divisionElement.querySelector('.rankings-conference');
-                const wasExpanded = oldRankingsHeader && !oldRankingsHeader.classList.contains('collapsed');
-                
                 if (oldRankingsHeader) {
                     // Remove the header, week headers, and rows
                     const weekHeaders = oldRankingsHeader.nextElementSibling;
@@ -2939,20 +2916,12 @@
                     tempDiv.appendChild(grid.firstChild);
                 }
                 
-                // Add rankings at the top
+                // Add rankings at the top (always visible)
                 this.addRankingsConference(grid, division, maxWeeks);
                 
                 // Re-add all the other children after the rankings
                 while (tempDiv.firstChild) {
                     grid.appendChild(tempDiv.firstChild);
-                }
-                
-                // If it was expanded before, expand it again
-                if (wasExpanded) {
-                    const newRankingsHeader = divisionElement.querySelector('.rankings-conference');
-                    if (newRankingsHeader) {
-                        newRankingsHeader.click(); // Trigger the toggle to expand it
-                    }
                 }
             }
 
