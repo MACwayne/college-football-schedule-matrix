@@ -2915,20 +2915,34 @@
             }
 
             updateDivisionRankingsFromWeek(division, divisionElement, startWeek) {
+                console.log(`🔄 updateDivisionRankingsFromWeek: ${division}, startWeek: ${startWeek}`);
+                
                 // Find the rankings section within this division
                 const rankingsSection = divisionElement.querySelector('.rankings-conference');
-                if (!rankingsSection) return;
+                if (!rankingsSection) {
+                    console.log(`⚠️ No rankings section found for ${division}`);
+                    return;
+                }
                 
                 // Find the rankings rows container
                 const rankingsRows = rankingsSection.nextElementSibling.nextElementSibling;
-                if (!rankingsRows) return;
+                if (!rankingsRows) {
+                    console.log(`⚠️ No rankings rows found for ${division}`);
+                    return;
+                }
+                
+                console.log(`✅ Found rankings section and rows for ${division}`);
                 
                 // Get the number of weeks from the grid
                 const grid = divisionElement.querySelector('.schedule-matrix');
                 const maxWeeks = parseInt(grid.style.gridTemplateColumns.split('repeat(')[1].split(',')[0]);
                 
+                console.log(`📅 Updating weeks ${startWeek} to ${maxWeeks}`);
+                
                 // Regenerate rankings data from the start week forward
                 const rankingsData = this.generateWeeklyRankings(division, maxWeeks);
+                
+                console.log(`📊 Generated rankings data for ${rankingsData.length} teams`);
                 
                 // Update only the weeks from startWeek forward
                 for (let week = startWeek; week <= maxWeeks; week++) {
