@@ -246,6 +246,11 @@
             pointer-events: auto;
         }
 
+        .team-row.away-team {
+            cursor: default;
+            opacity: 0.7;
+        }
+
         /* Make logos non-draggable and non-selectable */
         .team-logo {
             pointer-events: none;
@@ -2375,18 +2380,25 @@
                     return;
                 }
                 
-                // Determine which team is actually being dragged
-                const draggedTeamName = isHome ? teamName : opponent;
+                // Only allow dragging from the home team-row (the team that owns this row)
+                // The away team-row should not be draggable
+                if (!isHome) {
+                    event.preventDefault();
+                    return;
+                }
+                
+                // The dragged team is always the row owner (teamName)
+                const draggedTeamName = teamName;
                 
                 // Store team data for context
                 event.dataTransfer.setData('text/plain', draggedTeamName);
                 event.dataTransfer.setData('text/week', week);
                 event.dataTransfer.setData('text/source', 'team-row');
-                event.dataTransfer.setData('text/home-away', isHome ? 'H' : 'A');
+                event.dataTransfer.setData('text/home-away', 'H'); // Always home since we only drag from home team-row
                 event.dataTransfer.effectAllowed = 'move';
                 event.target.classList.add('dragging');
                 
-                console.log(`🎯 Dragging ${draggedTeamName} from team-row (${isHome ? 'home' : 'away'} position)`);
+                console.log(`🎯 Dragging ${draggedTeamName} from team-row (home position)`);
             }
 
             // Removed handleLogoDragStart - now using team-row dragging only
@@ -2546,9 +2558,10 @@
                 const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][week];
                 if (!targetGame) return;
 
+                // Set the target team as home and dragged team as away
                 targetGame.opponent = draggedTeam;
                 targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
-                targetGame.homeAway = targetHomeAway;
+                targetGame.homeAway = 'H'; // Target team is always home
 
                 // Update dragged team's game
                 const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][week];
@@ -2556,7 +2569,9 @@
 
                 draggedGame.opponent = targetTeam;
                 draggedGame.opponentLogo = this.getTeamLogo(targetTeam);
-                draggedGame.homeAway = targetHomeAway === 'H' ? 'A' : 'H';
+                draggedGame.homeAway = 'A'; // Dragged team is always away
+                
+                console.log(`✅ ${draggedTeam} now plays ${targetTeam} in week ${week} (${targetTeam} home, ${draggedTeam} away)`);
             }
 
             updateAllAffectedCells(draggedTeam, targetTeam, week) {
