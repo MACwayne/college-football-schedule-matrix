@@ -2339,6 +2339,8 @@
                                     if (scores.length === 2) {
                                         homeScore = scores[0];
                                         awayScore = scores[1];
+                                        // Debug: Log score parsing
+                                        console.log(`Score parsing: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
                                     }
                                 }
                                 
@@ -2352,6 +2354,9 @@
                                     const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
                                     const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
                                     const isTie = homeScoreNum === awayScoreNum;
+                                    
+                                    // Debug: Log win/loss calculation
+                                    console.log(`Win/Loss calc: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     
                                     if (rowTeamWon) {
                                         cellClass += ' win-cell';
@@ -2533,6 +2538,8 @@
                                     if (scores.length === 2) {
                                         homeScore = scores[0];
                                         awayScore = scores[1];
+                                        // Debug: Log score parsing
+                                        console.log(`Score parsing: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
                                     }
                                 }
                                 
@@ -2546,6 +2553,9 @@
                                     const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
                                     const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
                                     const isTie = homeScoreNum === awayScoreNum;
+                                    
+                                    // Debug: Log win/loss calculation
+                                    console.log(`Win/Loss calc: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     
                                     if (rowTeamWon) {
                                         cellClass += ' win-cell';
