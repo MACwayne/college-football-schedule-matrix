@@ -2194,8 +2194,8 @@
                 });
 
                 // Re-add event listeners to the new team-rows
-                const teamRows = cell.querySelectorAll('.team-row');
-                teamRows.forEach(row => {
+                const newTeamRows = cell.querySelectorAll('.team-row');
+                newTeamRows.forEach(row => {
                     row.draggable = true;
                     row.addEventListener('dragstart', (e) => this.handleTeamRowDragStart(e));
                     row.addEventListener('dragend', (e) => this.handleDragEnd(e));
