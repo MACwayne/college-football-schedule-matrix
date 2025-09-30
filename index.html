@@ -2339,8 +2339,6 @@
                                     if (scores.length === 2) {
                                         homeScore = scores[0];
                                         awayScore = scores[1];
-                                        // Debug: Log score parsing
-                                        console.log(`Score parsing: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
                                     }
                                 }
                                 
@@ -2351,12 +2349,16 @@
                                     const awayScoreNum = parseInt(awayScore);
                                     
                                     // Check if the ROW TEAM won or lost
+                                    // The score is stored as "homeScore-awayScore" in game.score
+                                    // So homeScore is always the first number, awayScore is the second
+                                    // We need to determine if the ROW TEAM (the team this row represents) won
+                                    
+                                    // If the row team is home, they won if homeScore > awayScore
+                                    // If the row team is away, they won if awayScore > homeScore
                                     const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
                                     const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
                                     const isTie = homeScoreNum === awayScoreNum;
                                     
-                                    // Debug: Log win/loss calculation
-                                    console.log(`Win/Loss calc: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     
                                     if (rowTeamWon) {
                                         cellClass += ' win-cell';
@@ -2538,8 +2540,6 @@
                                     if (scores.length === 2) {
                                         homeScore = scores[0];
                                         awayScore = scores[1];
-                                        // Debug: Log score parsing
-                                        console.log(`Score parsing: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
                                     }
                                 }
                                 
@@ -2550,12 +2550,16 @@
                                     const awayScoreNum = parseInt(awayScore);
                                     
                                     // Check if the ROW TEAM won or lost
+                                    // The score is stored as "homeScore-awayScore" in game.score
+                                    // So homeScore is always the first number, awayScore is the second
+                                    // We need to determine if the ROW TEAM (the team this row represents) won
+                                    
+                                    // If the row team is home, they won if homeScore > awayScore
+                                    // If the row team is away, they won if awayScore > homeScore
                                     const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
                                     const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
                                     const isTie = homeScoreNum === awayScoreNum;
                                     
-                                    // Debug: Log win/loss calculation
-                                    console.log(`Win/Loss calc: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     
                                     if (rowTeamWon) {
                                         cellClass += ' win-cell';
