@@ -2377,23 +2377,32 @@
                                 // Determine if row team won/lost for cell background
                                 let cellClass = 'matrix-cell';
                                 if (game.result && game.score) {
-                                    const homeScoreNum = parseInt(homeScore);
-                                    const awayScoreNum = parseInt(awayScore);
+                                    // Parse the ORIGINAL score (before any swapping)
+                                    const scores = game.score.split('-');
+                                    const actualHomeScore = parseInt(scores[0]);
+                                    const actualAwayScore = parseInt(scores[1]);
                                     
-                                    // Check if the ROW TEAM won or lost
-                                    // The score is stored as "homeScore-awayScore" in game.score
-                                    // So homeScore is always the first number, awayScore is the second
-                                    // We need to determine if the ROW TEAM (the team this row represents) won
+                                    // Determine the row team's score and opponent's score
+                                    // based on whether the row team is home or away
+                                    let rowTeamScore, opponentScore;
+                                    if (game.homeAway === 'H') {
+                                        // Row team is home
+                                        rowTeamScore = actualHomeScore;
+                                        opponentScore = actualAwayScore;
+                                    } else {
+                                        // Row team is away
+                                        rowTeamScore = actualAwayScore;
+                                        opponentScore = actualHomeScore;
+                                    }
                                     
-                                    // If the row team is home, they won if homeScore > awayScore
-                                    // If the row team is away, they won if awayScore > homeScore
-                                    const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
-                                    const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
-                                    const isTie = homeScoreNum === awayScoreNum;
+                                    // Now determine win/loss based on row team's score
+                                    const rowTeamWon = rowTeamScore > opponentScore;
+                                    const rowTeamLost = rowTeamScore < opponentScore;
+                                    const isTie = rowTeamScore === opponentScore;
                                     
                                     // Debug: Only show logs for Army games to avoid spam
                                     if (team.name === 'Army') {
-                                        console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
+                                        console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, rowTeamScore: ${rowTeamScore}, opponentScore: ${opponentScore}, game.homeAway: ${game.homeAway}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     }
                                     
                                     
@@ -2610,23 +2619,32 @@
                                 // Determine if row team won/lost for cell background
                                 let cellClass = 'matrix-cell';
                                 if (game.result && game.score) {
-                                    const homeScoreNum = parseInt(homeScore);
-                                    const awayScoreNum = parseInt(awayScore);
+                                    // Parse the ORIGINAL score (before any swapping)
+                                    const scores = game.score.split('-');
+                                    const actualHomeScore = parseInt(scores[0]);
+                                    const actualAwayScore = parseInt(scores[1]);
                                     
-                                    // Check if the ROW TEAM won or lost
-                                    // The score is stored as "homeScore-awayScore" in game.score
-                                    // So homeScore is always the first number, awayScore is the second
-                                    // We need to determine if the ROW TEAM (the team this row represents) won
+                                    // Determine the row team's score and opponent's score
+                                    // based on whether the row team is home or away
+                                    let rowTeamScore, opponentScore;
+                                    if (game.homeAway === 'H') {
+                                        // Row team is home
+                                        rowTeamScore = actualHomeScore;
+                                        opponentScore = actualAwayScore;
+                                    } else {
+                                        // Row team is away
+                                        rowTeamScore = actualAwayScore;
+                                        opponentScore = actualHomeScore;
+                                    }
                                     
-                                    // If the row team is home, they won if homeScore > awayScore
-                                    // If the row team is away, they won if awayScore > homeScore
-                                    const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
-                                    const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
-                                    const isTie = homeScoreNum === awayScoreNum;
+                                    // Now determine win/loss based on row team's score
+                                    const rowTeamWon = rowTeamScore > opponentScore;
+                                    const rowTeamLost = rowTeamScore < opponentScore;
+                                    const isTie = rowTeamScore === opponentScore;
                                     
                                     // Debug: Only show logs for Army games to avoid spam
                                     if (team.name === 'Army') {
-                                        console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, homeScoreNum: ${homeScoreNum}, awayScoreNum: ${awayScoreNum}, isHome: ${isHome}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
+                                        console.log(`Win/Loss Debug: ${team.name} vs ${game.opponent}, rowTeamScore: ${rowTeamScore}, opponentScore: ${opponentScore}, game.homeAway: ${game.homeAway}, rowTeamWon: ${rowTeamWon}, rowTeamLost: ${rowTeamLost}, isTie: ${isTie}`);
                                     }
                                     
                                     
