@@ -398,6 +398,28 @@
             display: contents;
         }
 
+        .home-away-container {
+            padding: 4px 2px !important;
+        }
+
+        .home-away-header {
+            font-size: 8px;
+            font-weight: bold;
+            text-align: center;
+            padding: 2px;
+            border-radius: 3px;
+        }
+
+        .home-header {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+
+        .away-header {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+        }
+
         .conference-header {
             background-color: #34495e;
             color: white;
@@ -1800,6 +1822,7 @@
                 const grid = document.createElement('div');
                 grid.className = 'schedule-matrix';
                 grid.style.gridTemplateColumns = `150px repeat(${maxWeeks}, 100px)`;
+                grid.style.gridTemplateRows = `auto auto repeat(${Object.keys(divisionData.matrix).length}, auto)`;
 
                 // Add conference groups
                 divisionData.conferenceGroups.forEach(conferenceGroup => {
@@ -1855,6 +1878,40 @@
                     }
                     
                     grid.appendChild(weekHeadersRow);
+
+                    // Add home/away headers row
+                    const homeAwayHeadersRow = document.createElement('div');
+                    homeAwayHeadersRow.className = 'week-headers-row';
+                    homeAwayHeadersRow.style.display = 'contents';
+                    
+                    // Empty cell for teams column
+                    const emptyHeader = document.createElement('div');
+                    emptyHeader.className = 'week-header';
+                    emptyHeader.textContent = '';
+                    homeAwayHeadersRow.appendChild(emptyHeader);
+                    
+                    // Home/Away headers for each week
+                    for (let week = 1; week <= maxWeeks; week++) {
+                        const homeAwayContainer = document.createElement('div');
+                        homeAwayContainer.className = 'week-header home-away-container';
+                        homeAwayContainer.style.display = 'flex';
+                        homeAwayContainer.style.flexDirection = 'column';
+                        homeAwayContainer.style.gap = '2px';
+                        
+                        const homeHeader = document.createElement('div');
+                        homeHeader.className = 'home-away-header home-header';
+                        homeHeader.textContent = 'HOME';
+                        homeAwayContainer.appendChild(homeHeader);
+                        
+                        const awayHeader = document.createElement('div');
+                        awayHeader.className = 'home-away-header away-header';
+                        awayHeader.textContent = 'AWAY';
+                        homeAwayContainer.appendChild(awayHeader);
+                        
+                        homeAwayHeadersRow.appendChild(homeAwayContainer);
+                    }
+                    
+                    grid.appendChild(homeAwayHeadersRow);
 
                     // Create container for conference teams
                     const conferenceContainer = document.createElement('div');
