@@ -1998,7 +1998,12 @@
                         if (teamForThisRank) {
                             const weekData = teamForThisRank.weeklyRankings[week - 1];
                             const changeClass = weekData.change > 0 ? 'positive' : weekData.change < 0 ? 'negative' : 'neutral';
-                            const changeText = weekData.change > 0 ? `+${weekData.change}` : weekData.change < 0 ? `${weekData.change}` : '-';
+                            let changeText = '-';
+                            if (weekData.change > 0) {
+                                changeText = `↑${weekData.change}`;
+                            } else if (weekData.change < 0) {
+                                changeText = `↓${Math.abs(weekData.change)}`;
+                            }
                             
                             // Use actual record from the ranking calculation
                             const record = weekData.record ? weekData.record.record : '0-0';
@@ -2096,11 +2101,12 @@
                         weekRankings.forEach(currentTeam => {
                             const prevTeam = prevWeekRankings.find(p => p.team.name === currentTeam.team.name);
                             if (prevTeam) {
-                                // Team was ranked in previous week
-                                currentTeam.change = prevTeam.rank - currentTeam.rank; // Positive = moved up
+                                // Team was ranked in previous week - calculate actual positions moved
+                                const positionsMoved = prevTeam.rank - currentTeam.rank;
+                                currentTeam.change = positionsMoved; // Positive = moved up, negative = moved down
                             } else {
                                 // Team is new to top 10 this week - show as significant improvement
-                                currentTeam.change = 5; // Arbitrary positive number for "new entry"
+                                currentTeam.change = 5; // Show as moved up 5 positions
                             }
                         });
                     }
