@@ -2338,10 +2338,19 @@
                                     const scores = game.score.split('-');
                                     if (scores.length === 2) {
                                         // The score is stored as "homeScore-awayScore" in game.score
-                                        // So the first number is always the home team's score
-                                        // and the second number is always the away team's score
-                                        homeScore = scores[0];
-                                        awayScore = scores[1];
+                                        // where "home" and "away" refer to the actual home/away teams in the game
+                                        
+                                        // We need to determine which team is actually home and which is away
+                                        // based on the game.homeAway field
+                                        if (game.homeAway === 'H') {
+                                            // Row team is home, so row team's score is homeScore (first number)
+                                            homeScore = scores[0];
+                                            awayScore = scores[1];
+                                        } else {
+                                            // Row team is away, so row team's score is awayScore (second number)
+                                            homeScore = scores[1];
+                                            awayScore = scores[0];
+                                        }
                                         
                                         // Debug: Let's see what's happening with score parsing
                                         console.log(`Score Debug: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
@@ -2545,10 +2554,19 @@
                                     const scores = game.score.split('-');
                                     if (scores.length === 2) {
                                         // The score is stored as "homeScore-awayScore" in game.score
-                                        // So the first number is always the home team's score
-                                        // and the second number is always the away team's score
-                                        homeScore = scores[0];
-                                        awayScore = scores[1];
+                                        // where "home" and "away" refer to the actual home/away teams in the game
+                                        
+                                        // We need to determine which team is actually home and which is away
+                                        // based on the game.homeAway field
+                                        if (game.homeAway === 'H') {
+                                            // Row team is home, so row team's score is homeScore (first number)
+                                            homeScore = scores[0];
+                                            awayScore = scores[1];
+                                        } else {
+                                            // Row team is away, so row team's score is awayScore (second number)
+                                            homeScore = scores[1];
+                                            awayScore = scores[0];
+                                        }
                                         
                                         // Debug: Let's see what's happening with score parsing
                                         console.log(`Score Debug: ${team.name} vs ${game.opponent}, game.score: ${game.score}, homeScore: ${homeScore}, awayScore: ${awayScore}, isHome: ${isHome}, game.homeAway: ${game.homeAway}`);
