@@ -221,6 +221,13 @@
             box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
         }
 
+        .team-row.swap-position {
+            background-color: rgba(255, 193, 7, 0.25);
+            border: 2px dashed #ffc107;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+
         .team-row.drop-zone {
             min-height: 25px;
             border: 2px dashed transparent;
@@ -402,7 +409,32 @@
         }
 
         .conference-teams {
+            display: none;
+        }
+
+        .conference-teams.expanded {
             display: contents;
+        }
+
+        .conference-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .conference-controls button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .conference-controls button:hover {
+            background-color: #2980b9;
         }
 
         .division-header {
@@ -579,13 +611,17 @@
         <header>
             <h1>College Football Schedule Matrix - 2025 Season</h1>
             <div class="instructions">
-                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag entire team rows (click anywhere on score/logo area) to swap home/away positions • Drag team headers to swap opponents • Teams automatically removed from previous games</p>
+                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag team rows to swap home/away positions • Drag team rows onto themselves to swap home/away within same game • Drag team headers to swap opponents • Teams automatically removed from previous games</p>
             </div>
         </header>
         
         <main>
             <div class="schedule-container">
                 <div id="loadingMessage" class="loading">Loading schedule data...</div>
+                <div class="conference-controls">
+                    <button id="expandAllBtn">Expand All Conferences</button>
+                    <button id="collapseAllBtn">Collapse All Conferences</button>
+                </div>
                 <div id="scheduleMatrix" class="schedule-matrix"></div>
             </div>
         </main>
@@ -1719,6 +1755,40 @@
                 
                 // Enable interactive features after rendering
                 this.enableDragAndDrop();
+                this.setupConferenceControls();
+            }
+
+            setupConferenceControls() {
+                const expandAllBtn = document.getElementById('expandAllBtn');
+                const collapseAllBtn = document.getElementById('collapseAllBtn');
+                
+                if (expandAllBtn) {
+                    expandAllBtn.addEventListener('click', () => {
+                        const conferenceHeaders = document.querySelectorAll('.conference-header');
+                        conferenceHeaders.forEach(header => {
+                            header.classList.remove('collapsed');
+                            header.querySelector('.conference-toggle').textContent = '▼';
+                            const weekHeadersRow = header.nextElementSibling;
+                            const conferenceRows = weekHeadersRow.nextElementSibling;
+                            if (weekHeadersRow) weekHeadersRow.style.display = 'contents';
+                            if (conferenceRows) conferenceRows.style.display = 'contents';
+                        });
+                    });
+                }
+                
+                if (collapseAllBtn) {
+                    collapseAllBtn.addEventListener('click', () => {
+                        const conferenceHeaders = document.querySelectorAll('.conference-header');
+                        conferenceHeaders.forEach(header => {
+                            header.classList.add('collapsed');
+                            header.querySelector('.conference-toggle').textContent = '▶';
+                            const weekHeadersRow = header.nextElementSibling;
+                            const conferenceRows = weekHeadersRow.nextElementSibling;
+                            if (weekHeadersRow) weekHeadersRow.style.display = 'none';
+                            if (conferenceRows) conferenceRows.style.display = 'none';
+                        });
+                    });
+                }
             }
 
 
@@ -1772,11 +1842,11 @@
                 divisionData.conferenceGroups.forEach(conferenceGroup => {
                     // Conference header row
                     const conferenceHeader = document.createElement('div');
-                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs' : 'conference-header';
+                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs collapsed' : 'conference-header collapsed';
                     conferenceHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
                     conferenceHeader.style.cursor = 'pointer';
                     conferenceHeader.innerHTML = `
-                        <span class="conference-toggle">▼</span>
+                        <span class="conference-toggle">▶</span>
                         <span class="conference-name">${conferenceGroup.name}</span>
                         <span class="conference-count">(${conferenceGroup.teams.length} teams)</span>
                     `;
@@ -1799,6 +1869,12 @@
                             conferenceRows.style.display = 'none';
                         }
                     });
+                    
+                    // Initially hide the conference content
+                    const weekHeadersRow = conferenceHeader.nextElementSibling;
+                    const conferenceRows = weekHeadersRow.nextElementSibling;
+                    if (weekHeadersRow) weekHeadersRow.style.display = 'none';
+                    if (conferenceRows) conferenceRows.style.display = 'none';
                     
                     grid.appendChild(conferenceHeader);
 
@@ -2383,18 +2459,36 @@
             handleTeamRowDragOver(event) {
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
-                event.target.classList.add('drag-over');
+                
+                // Check if dragging onto the same team (position swap)
+                const draggedTeam = event.dataTransfer.getData('text/plain');
+                const targetGameCell = event.target.closest('[data-team]');
+                if (targetGameCell) {
+                    const targetTeam = targetGameCell.getAttribute('data-team');
+                    if (draggedTeam === targetTeam) {
+                        event.target.classList.add('swap-position');
+                        event.target.classList.remove('drag-over');
+                    } else {
+                        event.target.classList.add('drag-over');
+                        event.target.classList.remove('swap-position');
+                    }
+                } else {
+                    event.target.classList.add('drag-over');
+                    event.target.classList.remove('swap-position');
+                }
             }
 
             handleTeamRowDragLeave(event) {
                 event.target.classList.remove('drag-over');
+                event.target.classList.remove('swap-position');
             }
 
             handleTeamRowDrop(event) {
                 event.preventDefault();
                 
-                // Remove drag-over class
+                // Remove drag-over and swap-position classes
                 event.target.classList.remove('drag-over');
+                event.target.classList.remove('swap-position');
                 
                 const draggedTeam = event.dataTransfer.getData('text/plain');
                 const draggedWeek = event.dataTransfer.getData('text/week');
@@ -2417,9 +2511,10 @@
                     return;
                 }
 
-                // Don't allow dropping on same team
+                // Allow dropping on same team (swapping home/away positions)
                 if (draggedTeam === targetTeam) {
-                    console.log('Cannot drop team on itself');
+                    console.log(`🔄 Swapping home/away positions for ${draggedTeam} in week ${targetWeek}`);
+                    this.swapHomeAwayPositions(draggedTeam, targetWeek);
                     return;
                 }
 
@@ -2441,6 +2536,38 @@
             }
 
             // Removed handleLogoToTeamRowDrop - now using team-row dragging only
+
+            swapHomeAwayPositions(teamName, week) {
+                console.log(`🔄 Swapping home/away positions for ${teamName} in week ${week}`);
+                
+                const division = this.findTeamDivision(teamName);
+                if (!division) return;
+
+                const teamGame = this.scheduleData[division].matrix[teamName][week];
+                if (!teamGame || !teamGame.opponent) {
+                    console.log('No game found to swap positions');
+                    return;
+                }
+
+                // Toggle the home/away position
+                const newHomeAway = teamGame.homeAway === 'H' ? 'A' : 'H';
+                teamGame.homeAway = newHomeAway;
+
+                // Update the opponent's reverse game
+                const opponentDivision = this.findTeamDivision(teamGame.opponent);
+                if (opponentDivision) {
+                    const opponentGame = this.scheduleData[opponentDivision].matrix[teamGame.opponent][week];
+                    if (opponentGame) {
+                        opponentGame.homeAway = newHomeAway === 'H' ? 'A' : 'H';
+                        this.updateCellDisplay(teamGame.opponent, week, opponentGame);
+                    }
+                }
+
+                // Update the team's own cell display
+                this.updateCellDisplay(teamName, week, teamGame);
+                
+                console.log(`✅ ${teamName} is now ${newHomeAway === 'H' ? 'home' : 'away'} in week ${week}`);
+            }
 
             performTeamDrop(draggedTeam, targetTeam, targetWeek, targetHomeAway) {
                 console.log(`Moving ${draggedTeam} to play ${targetTeam} in week ${targetWeek} as ${targetHomeAway === 'H' ? 'home' : 'away'}`);
