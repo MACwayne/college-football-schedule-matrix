@@ -1991,7 +1991,7 @@
                         weekCell.className = `matrix-cell ${rank <= 3 ? 'top-3' : ''}`;
                         weekCell.style.gridColumn = `${week + 1}`;
                         weekCell.style.gridRow = `${rank + 2}`;
-                        weekCell.style.minHeight = '35px';
+                        weekCell.style.minHeight = '50px';
                         
                         // Find team with this rank in this week
                         const teamForThisRank = rankingsData.find(team => 
@@ -2012,13 +2012,13 @@
                             const record = weekData.record ? weekData.record.record : '0-0';
                             
                             weekCell.innerHTML = `
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
-                                    <div class="team-logo-container" style="width: 25px; height: 25px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    <div class="rankings-change ${changeClass}" style="font-size: 10px; padding: 2px 4px; border-radius: 3px; font-weight: bold;">${changeText}</div>
+                                    <div class="team-logo-container" style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
                                         <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="team-name-fallback" style="display: none; font-size: 7px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 1px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
+                                        <div class="team-name-fallback" style="display: none; font-size: 8px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 2px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
                                     </div>
-                                    <div style="font-size: 8px; color: #666; font-weight: 600; min-width: 20px; text-align: center;">${record}</div>
+                                    <div style="font-size: 9px; color: #666; font-weight: 600; min-width: 22px; text-align: center;">${record}</div>
                                 </div>
                             `;
                         } else {
@@ -2997,7 +2997,7 @@
                         weekCell.className = `matrix-cell ${rank <= 3 ? 'top-3' : ''}`;
                         weekCell.style.gridColumn = `${week + 1}`;
                         weekCell.style.gridRow = `${rank + 2}`;
-                        weekCell.style.minHeight = '35px';
+                        weekCell.style.minHeight = '50px';
                         
                         // Find team with this rank in this week
                         const teamForThisRank = rankingsData.find(team => 
@@ -3018,13 +3018,13 @@
                             const record = weekData.record ? weekData.record.record : '0-0';
                             
                             weekCell.innerHTML = `
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
-                                    <div class="team-logo-container" style="width: 25px; height: 25px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    <div class="rankings-change ${changeClass}" style="font-size: 10px; padding: 2px 4px; border-radius: 3px; font-weight: bold;">${changeText}</div>
+                                    <div class="team-logo-container" style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
                                         <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="team-name-fallback" style="display: none; font-size: 7px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 1px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
+                                        <div class="team-name-fallback" style="display: none; font-size: 8px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 2px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
                                     </div>
-                                    <div style="font-size: 8px; color: #666; font-weight: 600; min-width: 20px; text-align: center;">${record}</div>
+                                    <div style="font-size: 9px; color: #666; font-weight: 600; min-width: 22px; text-align: center;">${record}</div>
                                 </div>
                             `;
                         } else {
