@@ -1919,8 +1919,8 @@
                 rankingsHeader.style.cursor = 'pointer';
                 rankingsHeader.innerHTML = `
                     <span class="conference-toggle">▶</span>
-                    <span class="conference-name">🏆 Weekly Rankings - Top 10</span>
-                    <span class="conference-count">(10 teams)</span>
+                    <span class="conference-name">🏆 Weekly Rankings - Top 20</span>
+                    <span class="conference-count">(20 teams)</span>
                 `;
                 
                 // Add click handler for toggle
@@ -1974,7 +1974,7 @@
                 const rankingsData = this.generateWeeklyRankings(division, maxWeeks);
                 
                 // Add ranking rows (1st place, 2nd place, etc.)
-                for (let rank = 1; rank <= 10; rank++) {
+                for (let rank = 1; rank <= 20; rank++) {
                     // Create team header for this rank
                     const teamHeader = document.createElement('div');
                     teamHeader.className = 'team-header';
@@ -2091,8 +2091,8 @@
                         return bScore - aScore;
                     });
                     
-                    // Assign ranks 1-10 to top teams
-                    const weekRankings = sortedTeams.slice(0, 10).map((record, index) => ({
+                    // Assign ranks 1-20 to top teams
+                    const weekRankings = sortedTeams.slice(0, 20).map((record, index) => ({
                         team: record.team,
                         rank: index + 1,
                         change: 0, // Will be calculated next
@@ -2196,8 +2196,6 @@
                         record: `${wins}-${losses}`
                     });
                 }
-                
-                console.log(`📈 calculateTeamRecords: ${division}, week ${week}, found ${teamsWithResults} games with results, ${teamRecords.filter(r => r.wins > 0 || r.losses > 0).length} teams with records`);
                 
                 return teamRecords;
             }
@@ -2723,8 +2721,6 @@
                     newResult = '';
                 }
 
-                console.log(`🎮 Toggle Game: ${teamName} vs ${game.opponent}, week ${week}, ${currentResult || 'none'} -> ${newResult || 'none'}`);
-
                 // Update the game result
                 game.result = newResult;
                 
@@ -2733,8 +2729,6 @@
                 
                 // Update the reverse game (opponent's schedule)
                 this.updateReverseGame(teamName, week, game, newResult);
-                
-                console.log(`📊 Updating rankings from week ${week}...`);
                 
                 // Update rankings after game result change, starting from this week
                 this.updateRankingsFromWeek(parseInt(week));
@@ -2918,18 +2912,9 @@
             }
 
             updateDivisionRankingsFromWeek(division, divisionElement, startWeek) {
-                console.log(`🔄 updateDivisionRankingsFromWeek: ${division}, startWeek: ${startWeek}`);
-                
-                // Since the querySelector isn't finding cells, let's just completely regenerate the rankings
-                // This is simpler and more reliable than trying to update individual cells
-                console.log(`🔄 Completely regenerating rankings for ${division}...`);
-                
                 // Find the grid container
                 const grid = divisionElement.querySelector('.schedule-matrix');
-                if (!grid) {
-                    console.log(`⚠️ No grid found for ${division}`);
-                    return;
-                }
+                if (!grid) return;
                 
                 // Get the number of weeks
                 const maxWeeks = parseInt(grid.style.gridTemplateColumns.split('repeat(')[1].split(',')[0]);
@@ -2937,8 +2922,6 @@
                 // Check if rankings were expanded before removal
                 const oldRankingsHeader = divisionElement.querySelector('.rankings-conference');
                 const wasExpanded = oldRankingsHeader && !oldRankingsHeader.classList.contains('collapsed');
-                
-                console.log(`📋 Rankings was ${wasExpanded ? 'expanded' : 'collapsed'} before regeneration`);
                 
                 if (oldRankingsHeader) {
                     // Remove the header, week headers, and rows
@@ -2948,16 +2931,7 @@
                     if (rankingsRows) rankingsRows.remove();
                     if (weekHeaders) weekHeaders.remove();
                     oldRankingsHeader.remove();
-                    
-                    console.log(`🗑️ Removed old rankings section`);
                 }
-                
-                // Add the rankings section again (this will recreate it with new data)
-                // But we need to insert it at the TOP, not the bottom
-                console.log(`🔧 Creating new rankings section...`);
-                
-                // Get the first child of the grid (should be the first conference header or team header)
-                const firstChild = grid.firstChild;
                 
                 // Temporarily store the grid's children
                 const tempDiv = document.createElement('div');
@@ -2973,18 +2947,13 @@
                     grid.appendChild(tempDiv.firstChild);
                 }
                 
-                console.log(`📍 Rankings section repositioned to top`);
-                
                 // If it was expanded before, expand it again
                 if (wasExpanded) {
                     const newRankingsHeader = divisionElement.querySelector('.rankings-conference');
                     if (newRankingsHeader) {
-                        console.log(`📂 Expanding rankings section...`);
                         newRankingsHeader.click(); // Trigger the toggle to expand it
                     }
                 }
-                
-                console.log(`✅ Rankings regenerated for ${division}`);
             }
 
             updateDivisionRankings(division, divisionElement) {
@@ -3007,7 +2976,7 @@
                 rankingsRows.innerHTML = '';
                 
                 // Recreate ranking rows
-                for (let rank = 1; rank <= 10; rank++) {
+                for (let rank = 1; rank <= 20; rank++) {
                     // Create team header for this rank
                     const teamHeader = document.createElement('div');
                     teamHeader.className = 'team-header';
