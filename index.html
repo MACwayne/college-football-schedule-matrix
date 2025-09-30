@@ -2931,8 +2931,12 @@
                 // Get the number of weeks
                 const maxWeeks = parseInt(grid.style.gridTemplateColumns.split('repeat(')[1].split(',')[0]);
                 
-                // Find and remove the old rankings section
+                // Check if rankings were expanded before removal
                 const oldRankingsHeader = divisionElement.querySelector('.rankings-conference');
+                const wasExpanded = oldRankingsHeader && !oldRankingsHeader.classList.contains('collapsed');
+                
+                console.log(`📋 Rankings was ${wasExpanded ? 'expanded' : 'collapsed'} before regeneration`);
+                
                 if (oldRankingsHeader) {
                     // Remove the header, week headers, and rows
                     const weekHeaders = oldRankingsHeader.nextElementSibling;
@@ -2941,10 +2945,22 @@
                     if (rankingsRows) rankingsRows.remove();
                     if (weekHeaders) weekHeaders.remove();
                     oldRankingsHeader.remove();
+                    
+                    console.log(`🗑️ Removed old rankings section`);
                 }
                 
                 // Add the rankings section again (this will recreate it with new data)
+                console.log(`🔧 Creating new rankings section...`);
                 this.addRankingsConference(grid, division, maxWeeks);
+                
+                // If it was expanded before, expand it again
+                if (wasExpanded) {
+                    const newRankingsHeader = divisionElement.querySelector('.rankings-conference');
+                    if (newRankingsHeader) {
+                        console.log(`📂 Expanding rankings section...`);
+                        newRankingsHeader.click(); // Trigger the toggle to expand it
+                    }
+                }
                 
                 console.log(`✅ Rankings regenerated for ${division}`);
             }
