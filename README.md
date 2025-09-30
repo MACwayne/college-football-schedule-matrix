@@ -52,10 +52,10 @@ A comprehensive web application for displaying college football schedules in an 
 ## Usage
 
 ### 🌐 **Live Demo**
-Visit the live application: **[https://YOUR_USERNAME.github.io/college-football-schedule-matrix](https://YOUR_USERNAME.github.io/college-football-schedule-matrix)**
+Visit the live application: **[https://macwayne.github.io/college-football-schedule-matrix/](https://macwayne.github.io/college-football-schedule-matrix/)**
 
 ### 💻 **Local Usage**
-1. **Clone the Repository**: `git clone https://github.com/YOUR_USERNAME/college-football-schedule-matrix.git`
+1. **Clone the Repository**: `git clone https://github.com/MACwayne/college-football-schedule-matrix.git`
 2. **Open the Application**: Simply open `index.html` in your web browser
 3. **Navigate Divisions**: Click on FBS or FCS headers to expand/collapse
 4. **Browse Conferences**: Click on conference names to show/hide teams
@@ -99,7 +99,7 @@ This project is automatically deployed to GitHub Pages:
 2. **Branch**: `master` branch
 3. **Source**: Root directory (`/`)
 4. **Entry Point**: `index.html`
-5. **URL**: `https://YOUR_USERNAME.github.io/college-football-schedule-matrix`
+5. **URL**: `https://macwayne.github.io/college-football-schedule-matrix/`
 
 ### **Enable GitHub Pages:**
 1. Go to your repository **Settings**
