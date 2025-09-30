@@ -2661,6 +2661,9 @@
                 
                 // Update the reverse game (opponent's schedule)
                 this.updateReverseGame(teamName, week, game, newResult);
+                
+                // Update rankings after game result change
+                this.updateRankings();
             }
 
             updateCellDisplay(teamName, week, game) {
@@ -2803,6 +2806,98 @@
 
                     // Update the reverse cell display
                     this.updateCellDisplay(opponentName, week, reverseGame);
+                }
+            }
+
+            updateRankings() {
+                // Find all ranking sections and update them
+                const rankingSections = document.querySelectorAll('.rankings-conference');
+                rankingSections.forEach(section => {
+                    const division = section.closest('.division-content');
+                    if (!division) return;
+                    
+                    // Find the division name from the parent division header
+                    const divisionHeader = division.previousElementSibling;
+                    const divisionName = divisionHeader.querySelector('.division-name').textContent;
+                    const divisionKey = divisionName.includes('FBS') ? 'FBS' : 'FCS';
+                    
+                    // Regenerate rankings for this division
+                    this.updateDivisionRankings(divisionKey, division);
+                });
+            }
+
+            updateDivisionRankings(division, divisionElement) {
+                // Find the rankings section within this division
+                const rankingsSection = divisionElement.querySelector('.rankings-conference');
+                if (!rankingsSection) return;
+                
+                // Find the rankings rows container
+                const rankingsRows = rankingsSection.nextElementSibling.nextElementSibling;
+                if (!rankingsRows) return;
+                
+                // Get the number of weeks from the grid
+                const grid = divisionElement.querySelector('.schedule-matrix');
+                const maxWeeks = parseInt(grid.style.gridTemplateColumns.split('repeat(')[1].split(',')[0]);
+                
+                // Regenerate rankings data
+                const rankingsData = this.generateWeeklyRankings(division, maxWeeks);
+                
+                // Clear existing ranking rows
+                rankingsRows.innerHTML = '';
+                
+                // Recreate ranking rows
+                for (let rank = 1; rank <= 10; rank++) {
+                    // Create team header for this rank
+                    const teamHeader = document.createElement('div');
+                    teamHeader.className = 'team-header';
+                    teamHeader.textContent = `#${rank}`;
+                    teamHeader.style.gridColumn = '1';
+                    teamHeader.style.gridRow = `${rank + 2}`;
+                    rankingsRows.appendChild(teamHeader);
+                    
+                    // Add week cells for this rank
+                    for (let week = 1; week <= maxWeeks; week++) {
+                        const weekCell = document.createElement('div');
+                        weekCell.className = `matrix-cell ${rank <= 3 ? 'top-3' : ''}`;
+                        weekCell.style.gridColumn = `${week + 1}`;
+                        weekCell.style.gridRow = `${rank + 2}`;
+                        weekCell.style.minHeight = '35px';
+                        
+                        // Find team with this rank in this week
+                        const teamForThisRank = rankingsData.find(team => 
+                            team.weeklyRankings[week - 1]?.rank === rank
+                        );
+                        
+                        if (teamForThisRank) {
+                            const weekData = teamForThisRank.weeklyRankings[week - 1];
+                            const changeClass = weekData.change > 0 ? 'positive' : weekData.change < 0 ? 'negative' : 'neutral';
+                            let changeText = '-';
+                            if (weekData.change > 0) {
+                                changeText = `↑${weekData.change}`;
+                            } else if (weekData.change < 0) {
+                                changeText = `↓${Math.abs(weekData.change)}`;
+                            }
+                            
+                            // Use actual record from the ranking calculation
+                            const record = weekData.record ? weekData.record.record : '0-0';
+                            
+                            weekCell.innerHTML = `
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    <div class="team-logo-container" style="width: 25px; height: 25px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                        <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="team-name-fallback" style="display: none; font-size: 7px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 1px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
+                                    </div>
+                                    <div style="font-size: 8px; color: #666; font-weight: 600; min-width: 20px; text-align: center;">${record}</div>
+                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
+                                </div>
+                            `;
+                        } else {
+                            // Empty cell if no team has this rank
+                            weekCell.innerHTML = '';
+                        }
+                        
+                        rankingsRows.appendChild(weekCell);
+                    }
                 }
             }
 
