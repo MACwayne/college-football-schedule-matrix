@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Football Schedule Matrix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #weekSelect {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: white;
+            color: #333;
+            min-width: 150px;
+        }
+
+        #loadSchedule {
+            padding: 10px 20px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #loadSchedule:hover {
+            background-color: #229954;
+        }
+
+        .schedule-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            padding: 40px;
+        }
+
+        .schedule-matrix {
+            display: grid;
+            gap: 1px;
+            background-color: transparent;
+            border-radius: 0;
+            overflow: hidden;
+            margin-top: 20px;
+            border: none;
+            width: fit-content;
+            max-width: fit-content;
+        }
+
+        .matrix-cell {
+            background-color: white;
+            padding: 6px;
+            font-size: 9px;
+            text-align: center;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            min-height: 70px;
+            min-width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .matrix-cell:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .game-card {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 2;
+            position: relative;
+        }
+
+        .team-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2px 8px 2px 4px;
+            min-height: 20px;
+            gap: 18px;
+        }
+
+        .team-row.home-team {
+            padding: 3px 4px;
+            margin-bottom: 2px;
+        }
+
+        .team-row.away-team {
+            padding: 3px 4px;
+        }
+
+        .team-logo-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 18px;
+            flex-shrink: 0;
+            min-width: 28px;
+        }
+
+        .team-logo {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
+            border-radius: 2px;
+        }
+
+        .team-name-fallback {
+            font-size: 7px;
+            font-weight: 900;
+            color: #000;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            line-height: 1.2;
+            background-color: #fff;
+            padding: 2px 3px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            min-width: 24px;
+            max-width: 28px;
+        }
+
+        .score {
+            font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            color: #1a1a1a;
+            font-weight: 900;
+            padding: 2px 6px 2px 2px;
+            width: 24px;
+            text-align: right;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+
+
+        .win-cell {
+            background-color: rgba(39, 174, 96, 0.12) !important;
+        }
+
+        .loss-cell {
+            background-color: rgba(231, 76, 60, 0.12) !important;
+        }
+
+        .tie-cell {
+            background-color: rgba(243, 156, 18, 0.12) !important;
+        }
+
+
+        .matrix-cell .bye {
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+
+
+
+        .week-header {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px 5px;
+            font-size: 12px;
+        }
+
+        .week-headers-row {
+            display: contents;
+        }
+
+        .conference-header {
+            background-color: #34495e;
+            color: white;
+            font-weight: bold;
+            padding: 8px 12px;
+            text-align: left;
+            border: 1px solid #2c3e50;
+            font-size: 14px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .conference-header:hover {
+            background-color: #2c3e50;
+        }
+
+        .conference-toggle {
+            font-size: 12px;
+            transition: transform 0.2s ease;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .conference-name {
+            flex: 1;
+        }
+
+        .conference-count {
+            font-size: 12px;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+
+        .conference-teams {
+            display: contents;
+        }
+
+        .division-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .division-header:hover {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+        }
+
+        .division-toggle {
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .division-name {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .division-count {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-left: auto;
+        }
+
+        .division-content {
+            margin-bottom: 30px;
+        }
+        
+        .conference-header.non-fcs {
+            background: linear-gradient(135deg, #ffebee, #fce4ec);
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+        
+        .conference-header.non-fcs .conference-name {
+            font-style: italic;
+            opacity: 0.8;
+        }
+        
+        .conference-header.non-fcs .conference-count {
+            background: rgba(244, 67, 54, 0.1);
+            color: #c62828;
+        }
+
+        .shared-headers {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        .team-header {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px 5px;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .team-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        .team-name {
+            font-size: 11px;
+            line-height: 1.2;
+            text-align: center;
+            word-wrap: break-word;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .no-games {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .schedule-matrix {
+                font-size: 12px;
+            }
+            
+            .matrix-cell {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>College Football Schedule Matrix - 2025 Season</h1>
+        </header>
+        
+        <main>
+            <div class="schedule-container">
+                <div id="loadingMessage" class="loading">Loading schedule data...</div>
+                <div id="scheduleMatrix" class="schedule-matrix"></div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        class CFBScheduleMatrix {
+            constructor() {
+                this.scheduleData = {};
+                this.allGames = [];
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadInitialData();
+            }
+
+            setupEventListeners() {
+                // No division selector needed - showing all divisions
+            }
+
+            async loadInitialData() {
+                try {
+                    await this.loadAllGames();
+                    this.buildDivisionSchedule('FBS');
+                    this.buildDivisionSchedule('FCS');
+                    this.renderAllDivisions();
+                } catch (error) {
+                    console.error('❌ Error in loadInitialData:', error);
+                    console.error('Error stack:', error.stack);
+                    this.showError('Failed to load initial data. Please refresh the page.');
+                }
+            }
+
+
+            async loadAllGames() {
+                this.showLoading();
+                
+                try {
+                    // Fetch both games and teams in parallel
+                    const [games, teams] = await Promise.all([
+                        this.fetchAllGames(),
+                        this.fetchAllTeams()
+                    ]);
+                    
+                    this.allGames = games;
+                    this.allTeams = teams;
+                    
+                    if (this.allGames.length === 0) {
+                        console.error('❌ No games loaded!');
+                        this.showError('No games loaded from API');
+                        return;
+                    }
+                    
+                    this.hideLoading();
+                    
+                } catch (error) {
+                    console.error('❌ Error loading games:', error);
+                    console.error('Error stack:', error.stack);
+                    this.showError('Failed to load schedule data. Please try again.');
+                }
+            }
+
+            buildDivisionSchedule(division) {
+                // Get all teams and games, then filter by division
+                const allTeams = new Map();
+                const allGames = [];
+
+                // Create a map of team logos from the teams API
+                const teamLogos = new Map();
+                if (this.allTeams) {
+                    this.allTeams.forEach(teamData => {
+                        const team = teamData.team;
+                        teamLogos.set(team.displayName, team.logos?.[0]?.href || '');
+                    });
+                }
+
+                // Process all games to build complete team list (using games data for conference info)
+                this.allGames.forEach(event => {
+                    const competition = event.competitions[0];
+                    if (!competition || !competition.competitors) return;
+                    
+                    const homeTeam = competition.competitors.find(team => team.homeAway === 'home');
+                    const awayTeam = competition.competitors.find(team => team.homeAway === 'away');
+                    
+                    if (!homeTeam || !awayTeam) return;
+
+                    // Add teams to our complete list
+                    const homeLogo = teamLogos.get(homeTeam.team.displayName) || homeTeam.team.logo || '';
+                    const awayLogo = teamLogos.get(awayTeam.team.displayName) || awayTeam.team.logo || '';
+                    
+                    allTeams.set(homeTeam.team.displayName, {
+                        name: homeTeam.team.displayName,
+                        logo: homeLogo,
+                        conferenceId: homeTeam.team.conferenceId,
+                        conferenceName: homeTeam.team.conferenceId ? this.getConferenceName(homeTeam.team.conferenceId) : 'Independent'
+                    });
+                    allTeams.set(awayTeam.team.displayName, {
+                        name: awayTeam.team.displayName,
+                        logo: awayLogo,
+                        conferenceId: awayTeam.team.conferenceId,
+                        conferenceName: awayTeam.team.conferenceId ? this.getConferenceName(awayTeam.team.conferenceId) : 'Independent'
+                    });
+
+                    // Log teams without logos (skip TBD/TBA placeholders)
+                    if (!homeLogo && !homeTeam.team.displayName.includes('TBD') && !homeTeam.team.displayName.includes('TBA')) {
+                        console.log(`🚫 No logo for: ${homeTeam.team.displayName} (Conference: ${homeTeam.team.conferenceId})`);
+                    }
+                    if (!awayLogo && !awayTeam.team.displayName.includes('TBD') && !awayTeam.team.displayName.includes('TBA')) {
+                        console.log(`🚫 No logo for: ${awayTeam.team.displayName} (Conference: ${awayTeam.team.conferenceId})`);
+                    }
+
+                    // Add game to our complete list
+                    allGames.push(event);
+                });
+
+                // Now filter games and teams by division - Correct 2025 FBS conference IDs
+                const fbsConferences = ['1', '4', '5', '8', '9', '12', '15', '17', '18', '37', '151'];
+
+                let divisionGames;
+                let divisionTeams = new Map();
+
+                if (division === 'FBS') {
+                    // FBS: games where at least one team is from an FBS conference
+                    divisionGames = allGames.filter(event => {
+                    const competition = event.competitions[0];
+                    const homeTeam = competition.competitors.find(team => team.homeAway === 'home');
+                    const awayTeam = competition.competitors.find(team => team.homeAway === 'away');
+                    
+                        const homeIsFBS = fbsConferences.includes(homeTeam.team.conferenceId);
+                        const awayIsFBS = fbsConferences.includes(awayTeam.team.conferenceId);
+
+                        return homeIsFBS || awayIsFBS;
+                    });
+
+                    // FBS teams: teams from FBS conferences
+                    allTeams.forEach((team, teamName) => {
+                        if (fbsConferences.includes(team.conferenceId)) {
+                            divisionTeams.set(teamName, team);
+                        }
+                    });
+                } else {
+                    // FCS: games where neither team is from an FBS conference
+                    divisionGames = allGames.filter(event => {
+                        const competition = event.competitions[0];
+                        const homeTeam = competition.competitors.find(team => team.homeAway === 'home');
+                        const awayTeam = competition.competitors.find(team => team.homeAway === 'away');
+
+                        const homeIsFBS = fbsConferences.includes(homeTeam.team.conferenceId);
+                        const awayIsFBS = fbsConferences.includes(awayTeam.team.conferenceId);
+
+                        return !homeIsFBS && !awayIsFBS;
+                    });
+
+                    // FCS teams: teams not from FBS conferences
+                    const fcsConferences = ['20', '21', '22', '24', '25', '27', '28', '29', '30', '31', '32', '48', '177', '179'];
+                    const nonFcsConferences = ['104', '112', '136', '187']; // Division II/III conferences
+                    
+                    allTeams.forEach((team, teamName) => {
+                        if (!fbsConferences.includes(team.conferenceId) && team.conferenceId) {
+                            if (fcsConferences.includes(team.conferenceId)) {
+                                // Official FCS team
+                                divisionTeams.set(teamName, team);
+                            } else if (nonFcsConferences.includes(team.conferenceId)) {
+                                // Non-FCS opponent - put in special conference
+                                const nonFcsTeam = {
+                                    ...team,
+                                    conferenceName: 'Non-FCS Opponents',
+                                    isNonFcs: true
+                                };
+                                divisionTeams.set(teamName, nonFcsTeam);
+                            }
+                        }
+                    });
+                }
+
+                // Apply manual corrections to team data first
+                
+                
+                
+                divisionTeams.forEach((team, teamName) => {
+                    // Manual corrections for 2025 season accuracy
+                    if (division === 'FBS') {
+                        // UMass should be Independent, not MAC
+                        if (teamName.includes('Massachusetts') || teamName.includes('UMass')) {
+                            console.log(`🔄 Moving ${teamName} from ${team.conferenceName} to Independent`);
+                            team.conferenceName = 'Independent';
+                        }
+                } else if (division === 'FCS') {
+                    // Fix FCS team assignments
+                    if (teamName.includes('Merrimack') || teamName.includes('Sacred Heart')) {
+                        console.log(`🔄 Moving ${teamName} from ${team.conferenceName} to Northeast`);
+                        team.conferenceName = 'Northeast';
+                    } else if (teamName.includes('Bryant') && !teamName.includes('Gardner-Webb')) {
+                        console.log(`🔄 Moving ${teamName} from ${team.conferenceName} to Big South-OVC`);
+                        team.conferenceName = 'Big South-OVC';
+                    } else if (teamName.includes('Richmond')) {
+                        console.log(`🔄 Moving ${teamName} from ${team.conferenceName} to CAA`);
+                        team.conferenceName = 'CAA';
+                    } else if (teamName.includes('Delaware State') && !teamName.includes('Hornets')) {
+                        console.log(`🔄 Renaming ${teamName} to Delaware State Hornets and moving to MEAC`);
+                        team.name = 'Delaware State Hornets';
+                        team.conferenceName = 'MEAC';
+                        // Update the map key
+                        divisionTeams.delete(teamName);
+                        divisionTeams.set('Delaware State Hornets', team);
+                    } else if (teamName.includes('East Texas A&M') || teamName.includes('Stephen F. Austin') || teamName.includes('UT Rio Grande Valley')) {
+                        console.log(`🔄 Moving ${teamName} from ${team.conferenceName} to UAC`);
+                        team.conferenceName = 'UAC';
+                    } else if (teamName.includes('West Georgia')) {
+                        console.log(`🔄 Moving ${teamName} from ${team.conferenceName} to Non-FCS Opponents`);
+                        team.conferenceName = 'Non-FCS Opponents';
+                    }
+                }
+                });
+
+                // Group teams by conference after corrections
+                const teamsByConference = new Map();
+                divisionTeams.forEach((team, teamName) => {
+                    const conference = team.conferenceName || 'Independent';
+                    if (!teamsByConference.has(conference)) {
+                        teamsByConference.set(conference, []);
+                    }
+                    teamsByConference.get(conference).push(team);
+                });
+                
+                console.log(`🔍 ${division} Conference Groups:`);
+                Array.from(teamsByConference.entries()).forEach(([confName, teams]) => {
+                    console.log(`  ${confName}: ${teams.length} teams`);
+                });
+
+                // Sort conferences and teams within conferences
+                const sortedConferences = Array.from(teamsByConference.keys()).sort();
+                const teamList = [];
+                const conferenceGroups = [];
+
+                sortedConferences.forEach(conference => {
+                    const teams = teamsByConference.get(conference).sort((a, b) => a.name.localeCompare(b.name));
+                    conferenceGroups.push({
+                        name: conference,
+                        teams: teams
+                    });
+                    teamList.push(...teams);
+                });
+                
+                // Get all weeks (ensure we have at least 15 weeks for a full season)
+                const weeks = [...new Set(divisionGames.map(event => event.week.number))].sort((a, b) => a - b);
+                if (weeks.length === 0) {
+                    // If no games scheduled yet, create weeks 1-15
+                    for (let i = 1; i <= 15; i++) {
+                        weeks.push(i);
+                    }
+                }
+                
+                // Build schedule matrix
+                const scheduleMatrix = {};
+                teamList.forEach(team => {
+                    scheduleMatrix[team.name] = {};
+                    weeks.forEach(week => {
+                        scheduleMatrix[team.name][week] = null;
+                    });
+                });
+                
+                // Fill in the games with win/loss records
+                divisionGames.forEach(event => {
+                    const competition = event.competitions[0];
+                    const homeTeam = competition.competitors.find(team => team.homeAway === 'home');
+                    const awayTeam = competition.competitors.find(team => team.homeAway === 'away');
+                    const week = event.week.number;
+                    
+                    const homeDivision = this.getDivisionFromConference(homeTeam.team.conferenceId);
+                    const awayDivision = this.getDivisionFromConference(awayTeam.team.conferenceId);
+                    
+                    // Get game result
+                    const gameResult = this.getGameResult(homeTeam, awayTeam, event);
+                    
+                    if (homeDivision === division && scheduleMatrix[homeTeam.team.displayName]) {
+                        scheduleMatrix[homeTeam.team.displayName][week] = {
+                            opponent: awayTeam.team.displayName,
+                            opponentLogo: awayTeam.team.logo,
+                            homeAway: 'H',
+                            result: gameResult.homeResult,
+                            score: gameResult.score
+                        };
+                    }
+                    if (awayDivision === division && scheduleMatrix[awayTeam.team.displayName]) {
+                        scheduleMatrix[awayTeam.team.displayName][week] = {
+                            opponent: homeTeam.team.displayName,
+                            opponentLogo: homeTeam.team.logo,
+                            homeAway: 'A',
+                            result: gameResult.awayResult,
+                            score: gameResult.score
+                        };
+                    }
+                });
+                
+                this.scheduleData[division] = {
+                    teams: teamList,
+                    weeks: weeks,
+                    matrix: scheduleMatrix,
+                    conferenceGroups: conferenceGroups
+                };
+                
+                console.log(`✅ ${division} schedule built: ${teamList.length} teams, ${weeks.length} weeks, ${conferenceGroups.length} conferences`);
+                
+                // Log teams without logos for this division (skip TBD/TBA placeholders)
+                const teamsWithoutLogos = teamList.filter(team => !team.logo && !team.name.includes('TBD') && !team.name.includes('TBA'));
+                if (teamsWithoutLogos.length > 0) {
+                    console.log(`🚫 ${division} teams without logos (${teamsWithoutLogos.length}):`);
+                    teamsWithoutLogos.forEach(team => {
+                        console.log(`  - ${team.name} (${team.conferenceName})`);
+                    });
+                } else {
+                    console.log(`✅ All ${division} teams have logos!`);
+                }
+            }
+
+            verifyLoadedData() {
+                console.log('🔍 Verifying loaded data against expected 2025 season...');
+                
+                // Expected 2025 season data
+                const expected = {
+                    fbs: 134,
+                    fcs: 129,
+                    total: 263,
+                    majorTeams: ['Alabama', 'Georgia', 'Ohio State', 'Michigan', 'Notre Dame', 'Texas', 'Oklahoma']
+                };
+                
+                // Get actual counts
+                const fbsData = this.scheduleData.FBS;
+                const fcsData = this.scheduleData.FCS;
+                
+                const actualFbs = fbsData ? fbsData.teams.length : 0;
+                const actualFcs = fcsData ? fcsData.teams.length : 0;
+                const actualTotal = actualFbs + actualFcs;
+                
+                console.log('📊 Team Count Verification:');
+                console.log(`  FBS: ${actualFbs} (expected: ${expected.fbs}) ${actualFbs === expected.fbs ? '✅' : '❌'}`);
+                console.log(`  FCS: ${actualFcs} (expected: ${expected.fcs}) ${actualFcs === expected.fcs ? '✅' : '❌'}`);
+                console.log(`  Total: ${actualTotal} (expected: ${expected.total}) ${actualTotal === expected.total ? '✅' : '❌'}`);
+                
+                // Check major teams
+                console.log('🏆 Major Teams Verification:');
+                const allTeams = new Set();
+                if (fbsData) fbsData.teams.forEach(team => allTeams.add(team.name));
+                if (fcsData) fcsData.teams.forEach(team => allTeams.add(team.name));
+                
+                expected.majorTeams.forEach(team => {
+                    const found = Array.from(allTeams).some(name => name.includes(team));
+                    console.log(`  ${team}: ${found ? '✅' : '❌'}`);
+                });
+                
+                // Check conference distribution
+                console.log('🏛️ Conference Distribution:');
+                if (fbsData) {
+                    const fbsConferences = new Map();
+                    fbsData.teams.forEach(team => {
+                        const conf = team.conferenceName || 'Unknown';
+                        fbsConferences.set(conf, (fbsConferences.get(conf) || 0) + 1);
+                    });
+                    console.log('  FBS Conferences:');
+                    Array.from(fbsConferences.entries()).sort((a, b) => b[1] - a[1]).forEach(([conf, count]) => {
+                        console.log(`    ${conf}: ${count} teams`);
+                    });
+                }
+                
+                if (fcsData) {
+                    const fcsConferences = new Map();
+                    fcsData.teams.forEach(team => {
+                        const conf = team.conferenceName || 'Unknown';
+                        fcsConferences.set(conf, (fcsConferences.get(conf) || 0) + 1);
+                    });
+                    console.log('  FCS Conferences:');
+                    Array.from(fcsConferences.entries()).sort((a, b) => b[1] - a[1]).forEach(([conf, count]) => {
+                        console.log(`    ${conf}: ${count} teams`);
+                    });
+                }
+                
+                // Overall assessment
+                const fbsCorrect = actualFbs === expected.fbs;
+                const fcsCorrect = actualFcs === expected.fcs;
+                const totalCorrect = actualTotal === expected.total;
+                
+                if (fbsCorrect && fcsCorrect && totalCorrect) {
+                    console.log('🎉 VERIFICATION PASSED: All team counts match expected 2025 season!');
+                } else {
+                    console.log('⚠️ VERIFICATION ISSUES: Some counts don\'t match expected values');
+                }
+                
+                // Check for Non-FCS Opponents
+                if (fcsData) {
+                    const nonFcsCount = fcsData.teams.filter(team => team.conferenceName === 'Non-FCS Opponents').length;
+                    console.log(`🔗 Non-FCS Opponents: ${nonFcsCount} teams (these are Division II/III teams that FCS teams play)`);
+                    
+                    // Debug: Show which conference IDs are still unknown
+                    const unknownTeams = fcsData.teams.filter(team => team.conferenceName === 'Unknown Conference');
+                    if (unknownTeams.length > 0) {
+                        console.log('🔍 Unknown Conference IDs:');
+                        const unknownConfs = new Set();
+                        unknownTeams.forEach(team => {
+                            if (team.conferenceId) {
+                                unknownConfs.add(team.conferenceId);
+                            }
+                        });
+                        Array.from(unknownConfs).sort().forEach(confId => {
+                            console.log(`  Conference ID ${confId}: ${unknownTeams.filter(t => t.conferenceId === confId).length} teams`);
+                        });
+                    }
+                }
+                
+                // Detailed analysis of why we have more teams than expected
+                console.log('🔍 DETAILED ANALYSIS - Why we have more teams than expected:');
+                
+                // FBS Analysis
+                if (fbsData) {
+                    console.log('📊 FBS Analysis:');
+                    console.log(`  Expected: 134 teams`);
+                    console.log(`  Actual: ${actualFbs} teams (+${actualFbs - expected.fbs})`);
+                    
+                    // Check for duplicate conference names
+                    const fbsConfs = new Map();
+                    fbsData.teams.forEach(team => {
+                        const conf = team.conferenceName || 'Unknown';
+                        fbsConfs.set(conf, (fbsConfs.get(conf) || 0) + 1);
+                    });
+                    
+                    console.log('  FBS Conference Breakdown:');
+                    Array.from(fbsConfs.entries()).sort((a, b) => b[1] - a[1]).forEach(([conf, count]) => {
+                        console.log(`    ${conf}: ${count} teams`);
+                    });
+                }
+                
+                // FCS Analysis
+                if (fcsData) {
+                    console.log('📊 FCS Analysis:');
+                    console.log(`  Expected: 129 teams`);
+                    console.log(`  Actual: ${actualFcs} teams (+${actualFcs - expected.fcs})`);
+                    
+                    // Break down FCS teams
+                    const officialFcs = fcsData.teams.filter(team => team.conferenceName !== 'Non-FCS Opponents');
+                    const nonFcsOpponents = fcsData.teams.filter(team => team.conferenceName === 'Non-FCS Opponents');
+                    
+                    console.log(`  Official FCS teams: ${officialFcs.length}`);
+                    console.log(`  Non-FCS Opponents: ${nonFcsOpponents.length}`);
+                    console.log(`  Total FCS section: ${officialFcs.length + nonFcsOpponents.length}`);
+                    
+                    // Check for duplicate conference names in FCS
+                    const fcsConfs = new Map();
+                    officialFcs.forEach(team => {
+                        const conf = team.conferenceName || 'Unknown';
+                        fcsConfs.set(conf, (fcsConfs.get(conf) || 0) + 1);
+                    });
+                    
+                    console.log('  Official FCS Conference Breakdown:');
+                    Array.from(fcsConfs.entries()).sort((a, b) => b[1] - a[1]).forEach(([conf, count]) => {
+                        console.log(`    ${conf}: ${count} teams`);
+                    });
+                    
+                    // Check for teams that might be duplicates
+                    const teamNames = new Map();
+                    fcsData.teams.forEach(team => {
+                        const name = team.name;
+                        teamNames.set(name, (teamNames.get(name) || 0) + 1);
+                    });
+                    
+                    const duplicates = Array.from(teamNames.entries()).filter(([name, count]) => count > 1);
+                    if (duplicates.length > 0) {
+                        console.log('  ⚠️ Duplicate team names found:');
+                        duplicates.forEach(([name, count]) => {
+                            console.log(`    ${name}: ${count} times`);
+                        });
+                    } else {
+                        console.log('  ✅ No duplicate team names found');
+                    }
+                }
+                
+                // Overall assessment
+                const nonFcsCount = fcsData ? fcsData.teams.filter(team => team.conferenceName === 'Non-FCS Opponents').length : 0;
+                console.log('🎯 SUMMARY:');
+                console.log(`  We have ${actualTotal} teams vs expected ${expected.total} (+${actualTotal - expected.total})`);
+                console.log(`  This includes ${nonFcsCount} Non-FCS Opponents (Division II/III teams)`);
+                console.log(`  Official FBS + FCS teams: ${actualFbs + (actualFcs - nonFcsCount)}`);
+                console.log(`  Expected FBS + FCS teams: ${expected.fbs + expected.fcs}`);
+            }
+
+            compareWithOfficial2025List() {
+                console.log('🔍 DETAILED COMPARISON WITH OFFICIAL 2025 LIST:');
+                
+                // Official 2025 FBS teams by conference - Updated to match ESPN API names exactly
+                const officialFBS = {
+                    'ACC': ['Boston College Eagles', 'California Golden Bears', 'Clemson Tigers', 'Duke Blue Devils', 'Florida State Seminoles', 'Georgia Tech Yellow Jackets', 'Louisville Cardinals', 'Miami Hurricanes', 'NC State Wolfpack', 'North Carolina Tar Heels', 'Pittsburgh Panthers', 'SMU Mustangs', 'Stanford Cardinal', 'Syracuse Orange', 'Virginia Cavaliers', 'Virginia Tech Hokies', 'Wake Forest Demon Deacons'],
+                    'AAC': ['Army Black Knights', 'Charlotte 49ers', 'East Carolina Pirates', 'Florida Atlantic Owls', 'Memphis Tigers', 'Navy Midshipmen', 'North Texas Mean Green', 'Rice Owls', 'South Florida Bulls', 'Temple Owls', 'Tulane Green Wave', 'Tulsa Golden Hurricane', 'UAB Blazers', 'UTSA Roadrunners'],
+                    'Big 12': ['Arizona State Sun Devils', 'Arizona Wildcats', 'Baylor Bears', 'BYU Cougars', 'Cincinnati Bearcats', 'Colorado Buffaloes', 'Houston Cougars', 'Iowa State Cyclones', 'Kansas Jayhawks', 'Kansas State Wildcats', 'Oklahoma State Cowboys', 'TCU Horned Frogs', 'Texas Tech Red Raiders', 'UCF Knights', 'Utah Utes', 'West Virginia Mountaineers'],
+                    'Big Ten': ['Illinois Fighting Illini', 'Indiana Hoosiers', 'Iowa Hawkeyes', 'Maryland Terrapins', 'Michigan State Spartans', 'Michigan Wolverines', 'Minnesota Golden Gophers', 'Nebraska Cornhuskers', 'Northwestern Wildcats', 'Ohio State Buckeyes', 'Oregon Ducks', 'Penn State Nittany Lions', 'Purdue Boilermakers', 'Rutgers Scarlet Knights', 'UCLA Bruins', 'USC Trojans', 'Washington Huskies', 'Wisconsin Badgers'],
+                    'C-USA': ['Delaware Blue Hens', 'Florida International Panthers', 'Jacksonville State Gamecocks', 'Kennesaw State Owls', 'Liberty Flames', 'Louisiana Tech Bulldogs', 'Middle Tennessee Blue Raiders', 'Missouri State Bears', 'New Mexico State Aggies', 'Sam Houston Bearkats', 'UTEP Miners', 'Western Kentucky Hilltoppers'],
+                    'MAC': ['Akron Zips', 'Ball State Cardinals', 'Bowling Green Falcons', 'Buffalo Bulls', 'Central Michigan Chippewas', 'Eastern Michigan Eagles', 'Kent State Golden Flashes', 'Miami (OH) RedHawks', 'Northern Illinois Huskies', 'Ohio Bobcats', 'Toledo Rockets', 'Western Michigan Broncos'],
+                    'Mountain West': ['Air Force Falcons', 'Boise State Broncos', 'Colorado State Rams', 'Fresno State Bulldogs', 'Hawai\'i Rainbow Warriors', 'Nevada Wolf Pack', 'New Mexico Lobos', 'San Diego State Aztecs', 'San José State Spartans', 'UNLV Rebels', 'Utah State Aggies', 'Wyoming Cowboys'],
+                    'Pac-12': ['Oregon State Beavers', 'Washington State Cougars'],
+                    'SEC': ['Alabama Crimson Tide', 'Arkansas Razorbacks', 'Auburn Tigers', 'Florida Gators', 'Georgia Bulldogs', 'Kentucky Wildcats', 'LSU Tigers', 'Mississippi State Bulldogs', 'Missouri Tigers', 'Oklahoma Sooners', 'Ole Miss Rebels', 'South Carolina Gamecocks', 'Tennessee Volunteers', 'Texas A&M Aggies', 'Texas Longhorns', 'Vanderbilt Commodores'],
+                    'Sun Belt': ['App State Mountaineers', 'Arkansas State Red Wolves', 'Coastal Carolina Chanticleers', 'Georgia Southern Eagles', 'Georgia State Panthers', 'James Madison Dukes', 'Louisiana Ragin\' Cajuns', 'Marshall Thundering Herd', 'Old Dominion Monarchs', 'South Alabama Jaguars', 'Southern Miss Golden Eagles', 'Texas State Bobcats', 'Troy Trojans', 'UL Monroe Warhawks'],
+                    'Independent': ['Massachusetts Minutemen', 'Notre Dame Fighting Irish', 'UConn Huskies']
+                };
+
+                // Official 2025 FCS teams by conference - Updated to match ESPN API names exactly
+                const officialFCS = {
+                    'Big Sky': ['Cal Poly Mustangs', 'Eastern Washington Eagles', 'Idaho State Bengals', 'Idaho Vandals', 'Montana Grizzlies', 'Montana State Bobcats', 'Northern Arizona Lumberjacks', 'Northern Colorado Bears', 'Portland State Vikings', 'Sacramento State Hornets', 'UC Davis Aggies', 'Weber State Wildcats'],
+                    'Big South-OVC': ['Bryant Bulldogs', 'Charleston Southern Buccaneers', 'Eastern Illinois Panthers', 'Lindenwood Lions', 'Robert Morris Colonials', 'Southeast Missouri State Redhawks', 'Tennessee State Tigers', 'Tennessee Tech Golden Eagles', 'UT Martin Skyhawks', 'Western Illinois Leathernecks'],
+                    'CAA': ['Campbell Fighting Camels', 'Elon Phoenix', 'Hampton Pirates', 'Maine Black Bears', 'Monmouth Hawks', 'New Hampshire Wildcats', 'North Carolina A&T Aggies', 'Rhode Island Rams', 'Richmond Spiders', 'Stony Brook Seawolves', 'Towson Tigers', 'UAlbany Great Danes', 'Villanova Wildcats', 'William & Mary Tribe'],
+                    'Ivy League': ['Brown Bears', 'Columbia Lions', 'Cornell Big Red', 'Dartmouth Big Green', 'Harvard Crimson', 'Pennsylvania Quakers', 'Princeton Tigers', 'Yale Bulldogs'],
+                    'MEAC': ['Delaware State Hornets', 'Howard Bison', 'Morgan State Bears', 'Norfolk State Spartans', 'North Carolina Central Eagles', 'South Carolina State Bulldogs'],
+                    'Missouri Valley': ['Illinois State Redbirds', 'Indiana State Sycamores', 'Murray State Racers', 'North Dakota Fighting Hawks', 'North Dakota State Bison', 'Northern Iowa Panthers', 'South Dakota Coyotes', 'South Dakota State Jackrabbits', 'Southern Illinois Salukis', 'Youngstown State Penguins'],
+                    'Northeast': ['Central Connecticut Blue Devils', 'Duquesne Dukes', 'LIU Sharks', 'Merrimack Warriors', 'New Haven Chargers', 'Sacred Heart Pioneers', 'Saint Francis Red Flash', 'Stonehill Skyhawks', 'Wagner Seahawks'],
+                    'Patriot': ['Bucknell Bison', 'Colgate Raiders', 'Fordham Rams', 'Georgetown Hoyas', 'Holy Cross Crusaders', 'Lafayette Leopards', 'Lehigh Mountain Hawks'],
+                    'Pioneer': ['Butler Bulldogs', 'Davidson Wildcats', 'Dayton Flyers', 'Drake Bulldogs', 'Marist Red Foxes', 'Morehead State Eagles', 'Presbyterian Blue Hose', 'San Diego Toreros', 'St. Thomas-Minnesota Tommies', 'Stetson Hatters', 'Valparaiso Beacons'],
+                    'Southern': ['Chattanooga Mocs', 'East Tennessee State Buccaneers', 'Furman Paladins', 'Mercer Bears', 'Samford Bulldogs', 'The Citadel Bulldogs', 'VMI Keydets', 'Western Carolina Catamounts', 'Wofford Terriers'],
+                    'Southland': ['Houston Christian Huskies', 'Incarnate Word Cardinals', 'Lamar Cardinals', 'McNeese Cowboys', 'Nicholls Colonels', 'Northwestern State Demons', 'SE Louisiana Lions', 'Texas A&M-Commerce Lions'],
+                    'SWAC': ['Alabama A&M Bulldogs', 'Alabama State Hornets', 'Alcorn State Braves', 'Arkansas-Pine Bluff Golden Lions', 'Bethune-Cookman Wildcats', 'Florida A&M Rattlers', 'Grambling Tigers', 'Jackson State Tigers', 'Mississippi Valley State Delta Devils', 'Prairie View A&M Panthers', 'Southern Jaguars', 'Texas Southern Tigers'],
+                    'UAC': ['Abilene Christian Wildcats', 'Austin Peay Governors', 'Central Arkansas Bears', 'Eastern Kentucky Colonels', 'North Alabama Lions', 'Southern Utah Thunderbirds', 'Stephen F. Austin Lumberjacks', 'Tarleton State Texans', 'Utah Tech Trailblazers']
+                };
+
+                // Compare FBS teams
+                console.log('🏆 FBS TEAM-BY-TEAM COMPARISON:');
+                const fbsData = this.scheduleData.FBS;
+                if (fbsData) {
+                    Object.entries(officialFBS).forEach(([confName, expectedTeams]) => {
+                        const actualTeams = fbsData.teams.filter(team => team.conferenceName === confName);
+                        const actualTeamNames = actualTeams.map(team => team.name);
+                        
+                        console.log(`\n📊 ${confName} (Expected: ${expectedTeams.length}, Actual: ${actualTeams.length}):`);
+                        
+                        // Find missing teams with exact name matching
+                        const missingTeams = expectedTeams.filter(expected => {
+                            return !actualTeamNames.includes(expected);
+                        });
+                        
+                        // Find extra teams with exact name matching
+                        const extraTeams = actualTeamNames.filter(actual => {
+                            return !expectedTeams.includes(actual);
+                        });
+                        
+                        if (missingTeams.length > 0) {
+                            console.log(`  ❌ Missing: ${missingTeams.join(', ')}`);
+                        }
+                        if (extraTeams.length > 0) {
+                            console.log(`  ➕ Extra: ${extraTeams.join(', ')}`);
+                        }
+                        if (missingTeams.length === 0 && extraTeams.length === 0) {
+                            console.log(`  ✅ Perfect match!`);
+                        }
+                    });
+                }
+
+                // Compare FCS teams
+                console.log('\n🏈 FCS TEAM-BY-TEAM COMPARISON:');
+                const fcsData = this.scheduleData.FCS;
+                if (fcsData) {
+                    // Only compare official FCS teams, not Non-FCS Opponents
+                    const officialFcsTeams = fcsData.teams.filter(team => team.conferenceName !== 'Non-FCS Opponents');
+                    
+                    Object.entries(officialFCS).forEach(([confName, expectedTeams]) => {
+                        const actualTeams = officialFcsTeams.filter(team => team.conferenceName === confName);
+                        const actualTeamNames = actualTeams.map(team => team.name);
+                        
+                        console.log(`\n📊 ${confName} (Expected: ${expectedTeams.length}, Actual: ${actualTeams.length}):`);
+                        
+                        // Find missing teams with exact name matching
+                        const missingTeams = expectedTeams.filter(expected => {
+                            return !actualTeamNames.includes(expected);
+                        });
+                        
+                        // Find extra teams with exact name matching
+                        const extraTeams = actualTeamNames.filter(actual => {
+                            return !expectedTeams.includes(actual);
+                        });
+                        
+                        if (missingTeams.length > 0) {
+                            console.log(`  ❌ Missing: ${missingTeams.join(', ')}`);
+                        }
+                        if (extraTeams.length > 0) {
+                            console.log(`  ➕ Extra: ${extraTeams.join(', ')}`);
+                        }
+                        if (missingTeams.length === 0 && extraTeams.length === 0) {
+                            console.log(`  ✅ Perfect match!`);
+                        }
+                    });
+                }
+
+                console.log('\n🎯 SUMMARY: This comparison shows exactly which teams are missing or extra compared to the official 2025 list.');
+            }
+
+            debugConferenceIds() {
+                console.log('🔍 DEBUGGING CONFERENCE IDS:');
+                
+                // Debug FBS conference IDs
+                const fbsData = this.scheduleData.FBS;
+                if (fbsData) {
+                    console.log('🏆 FBS Conference ID Analysis:');
+                    const fbsConfs = new Map();
+                    fbsData.teams.forEach(team => {
+                        const confId = team.conferenceId;
+                        const confName = team.conferenceName;
+                        if (!fbsConfs.has(confId)) {
+                            fbsConfs.set(confId, { name: confName, teams: [] });
+                        }
+                        fbsConfs.get(confId).teams.push(team.name);
+                    });
+                    
+                    Array.from(fbsConfs.entries()).sort((a, b) => a[0] - b[0]).forEach(([confId, data]) => {
+                        console.log(`  Conference ID ${confId}: "${data.name}" (${data.teams.length} teams)`);
+                        console.log(`    Teams: ${data.teams.slice(0, 5).join(', ')}${data.teams.length > 5 ? '...' : ''}`);
+                    });
+                }
+                
+                // Debug FCS conference IDs
+                const fcsData = this.scheduleData.FCS;
+                if (fcsData) {
+                    console.log('\n🏈 FCS Conference ID Analysis:');
+                    const fcsConfs = new Map();
+                    fcsData.teams.forEach(team => {
+                        const confId = team.conferenceId;
+                        const confName = team.conferenceName;
+                        if (!fcsConfs.has(confId)) {
+                            fcsConfs.set(confId, { name: confName, teams: [] });
+                        }
+                        fcsConfs.get(confId).teams.push(team.name);
+                    });
+                    
+                    Array.from(fcsConfs.entries()).sort((a, b) => a[0] - b[0]).forEach(([confId, data]) => {
+                        console.log(`  Conference ID ${confId}: "${data.name}" (${data.teams.length} teams)`);
+                        console.log(`    Teams: ${data.teams.slice(0, 5).join(', ')}${data.teams.length > 5 ? '...' : ''}`);
+                    });
+                }
+                
+                console.log('\n💡 This shows the actual conference IDs from the API and how they map to conference names.');
+            }
+
+            debugDisplayedData() {
+                console.log('🔍 DEBUGGING DISPLAYED DATA:');
+                
+                // Check what's actually in the DOM
+                const fbsSection = document.querySelector('#fbs-section');
+                const fcsSection = document.querySelector('#fcs-section');
+                
+                if (fbsSection) {
+                    console.log('🏆 FBS Section in DOM:');
+                    const fbsConferences = fbsSection.querySelectorAll('.conference-header');
+                    console.log(`  Found ${fbsConferences.length} conference headers in FBS section`);
+                    fbsConferences.forEach((header, index) => {
+                        const confName = header.querySelector('.conference-name')?.textContent || 'Unknown';
+                        const confCount = header.querySelector('.conference-count')?.textContent || '0';
+                        console.log(`    ${index + 1}. ${confName} (${confCount})`);
+                    });
+                }
+                
+                if (fcsSection) {
+                    console.log('🏈 FCS Section in DOM:');
+                    const fcsConferences = fcsSection.querySelectorAll('.conference-header');
+                    console.log(`  Found ${fcsConferences.length} conference headers in FCS section`);
+                    fcsConferences.forEach((header, index) => {
+                        const confName = header.querySelector('.conference-name')?.textContent || 'Unknown';
+                        const confCount = header.querySelector('.conference-count')?.textContent || '0';
+                        console.log(`    ${index + 1}. ${confName} (${confCount})`);
+                    });
+                }
+                
+                // Check for duplicate conference names
+                const allConferenceHeaders = document.querySelectorAll('.conference-header');
+                const conferenceNames = Array.from(allConferenceHeaders).map(header => 
+                    header.querySelector('.conference-name')?.textContent || 'Unknown'
+                );
+                
+                const duplicateConfs = conferenceNames.filter((name, index) => 
+                    conferenceNames.indexOf(name) !== index
+                );
+                
+                if (duplicateConfs.length > 0) {
+                    console.log('⚠️ DUPLICATE CONFERENCES FOUND:');
+                    const uniqueDuplicates = [...new Set(duplicateConfs)];
+                    uniqueDuplicates.forEach(conf => {
+                        const count = conferenceNames.filter(name => name === conf).length;
+                        console.log(`  "${conf}" appears ${count} times`);
+                    });
+                } else {
+                    console.log('✅ No duplicate conferences found');
+                }
+                
+                // Check total teams displayed
+                const allTeams = document.querySelectorAll('.team-row');
+                console.log(`📊 Total team rows displayed: ${allTeams.length}`);
+                
+                // Check for teams with missing logos
+                const teamsWithFallback = document.querySelectorAll('.team-name-fallback');
+                console.log(`🖼️ Teams with fallback text (no logo): ${teamsWithFallback.length}`);
+                
+                console.log('\n💡 This shows what\'s actually being displayed in the DOM vs what we loaded from the API.');
+            }
+
+            async fetchAllGames() {
+                try {
+                    console.log('🌐 Starting fetchAllGames...');
+                    
+                    // Fetch both FBS and FCS games in parallel for 2025 season
+                    console.log('📡 Making API calls...');
+                    const [fbsResponse, fcsResponse] = await Promise.all([
+                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&limit=1000`),
+                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&groups=81&limit=1000`)
+                    ]);
+                    
+                    console.log(`📊 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
+                    
+                    if (!fbsResponse.ok || !fcsResponse.ok) {
+                        throw new Error(`ESPN API error! FBS status: ${fbsResponse.status}, FCS status: ${fcsResponse.status}`);
+                    }
+                    
+                    console.log('🔄 Parsing JSON responses...');
+                    const [fbsData, fcsData] = await Promise.all([
+                        fbsResponse.json(),
+                        fcsResponse.json()
+                    ]);
+                    
+                    console.log(`📈 FBS Events: ${fbsData.events?.length || 0}, FCS Events: ${fcsData.events?.length || 0}`);
+                    
+                    // Combine FBS and FCS games
+                    const allGames = [
+                        ...(fbsData.events || []),
+                        ...(fcsData.events || [])
+                    ];
+                    
+                    console.log(`✅ Total games combined: ${allGames.length}`);
+                    return allGames;
+                } catch (error) {
+                    console.error('❌ Error in fetchAllGames:', error);
+                    throw new Error('Unable to fetch schedule data from ESPN API');
+                }
+            }
+
+
+
+
+
+
+            async fetchAllTeams() {
+                try {
+                    // Fetch teams from ESPN teams API
+                    const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1000');
+                    
+                    if (!response.ok) {
+                        throw new Error(`Teams API Error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    return data.sports[0].leagues[0].teams || [];
+                } catch (error) {
+                    console.error('❌ Error fetching teams:', error);
+                    return [];
+                }
+            }
+
+            getDivisionFromConference(conferenceId) {
+                // Map conference IDs to divisions based on actual API data
+                // FBS conferences (Power 5 + Group of 5) - these are the main FBS conferences
+                const fbsConferences = ['1', '4', '5', '8', '9', '12', '15', '17', '18', '37', '151'];
+                
+                // If it's a known FBS conference, return FBS
+                if (fbsConferences.includes(conferenceId)) {
+                    return 'FBS';
+                } else {
+                    // Everything else is FCS (since we're using groups=81 for FCS data)
+                    return 'FCS';
+                }
+            }
+
+            getConferenceName(conferenceId) {
+                // Correct 2025 season conference mappings based on actual ESPN API data
+                const conferenceNames = {
+                    // FBS Conferences - CORRECTED based on actual API data
+                    '1': 'ACC',           // Atlantic Coast Conference (Boston College, Clemson, etc.)
+                    '4': 'Big 12',        // Big 12 Conference (Arizona, Baylor, etc.)
+                    '5': 'Big Ten',       // Big Ten Conference (Illinois, Indiana, etc.)
+                    '8': 'SEC',           // Southeastern Conference (Alabama, Arkansas, etc.)
+                    '9': 'Pac-12',        // Pac-12 Conference (Oregon State, Washington State)
+                    '12': 'C-USA',        // Conference USA (Delaware, Liberty, etc.)
+                    '15': 'MAC',          // Mid-American Conference (Akron, Ball State, etc.)
+                    '17': 'Mountain West', // Mountain West Conference (Air Force, Boise State, etc.)
+                    '18': 'Independent',  // FBS Independents (Notre Dame, UConn, etc.)
+                    '37': 'Sun Belt',     // Sun Belt Conference (App State, Arkansas State, etc.)
+                    '151': 'AAC',         // American Athletic Conference (Army, Charlotte, etc.)
+                    
+                    // FCS Conferences - CORRECTED based on actual API data
+                    '20': 'Big Sky',          // Big Sky Conference (Cal Poly, Eastern Washington, etc.)
+                    '21': 'Missouri Valley',  // Missouri Valley Football Conference (Illinois State, etc.)
+                    '22': 'Ivy League',       // Ivy League (Brown, Columbia, etc.)
+                    '24': 'MEAC',            // Mid-Eastern Athletic Conference (Delaware State, Howard, etc.)
+                    '25': 'Northeast',       // Northeast Conference (Central Connecticut, etc.)
+                    '27': 'Patriot',         // Patriot League (Bucknell, Colgate, etc.)
+                    '28': 'Pioneer',         // Pioneer Football League (Butler, Davidson, etc.)
+                    '29': 'Southern',        // Southern Conference (Chattanooga, ETSU, etc.)
+                    '30': 'Southland',       // Southland Conference (Houston Christian, etc.)
+                    '31': 'SWAC',            // Southwestern Athletic Conference (Alabama A&M, etc.)
+                    '32': 'Big Sky',         // Big Sky Conference (Merrimack, Sacred Heart)
+                    '48': 'CAA',             // Coastal Athletic Association (Bryant, Campbell, etc.)
+                    '177': 'UAC',            // United Athletic Conference (Abilene Christian, etc.)
+                    '179': 'Big South-OVC',  // Big South-OVC Football Association (Charleston Southern, etc.)
+                    
+                    // Non-FCS Opponents (Division II/III teams)
+                    '104': 'Non-FCS Opponents',
+                    '112': 'Non-FCS Opponents', 
+                    '136': 'Non-FCS Opponents',
+                    '187': 'Non-FCS Opponents'
+                };
+                
+                return conferenceNames[conferenceId] || 'Unknown Conference';
+            }
+
+            getGameResult(homeTeam, awayTeam, event) {
+                const competition = event.competitions[0];
+                const gameStatus = competition.status;
+                
+                // Check if game has been played (status.type.name === 'STATUS_FINAL')
+                if (gameStatus && gameStatus.type && gameStatus.type.name === 'STATUS_FINAL') {
+                    const homeScore = parseInt(homeTeam.score) || 0;
+                    const awayScore = parseInt(awayTeam.score) || 0;
+                    
+                    let homeResult, awayResult;
+                    if (homeScore > awayScore) {
+                        homeResult = 'W';
+                        awayResult = 'L';
+                    } else if (awayScore > homeScore) {
+                        homeResult = 'L';
+                        awayResult = 'W';
+                } else {
+                        homeResult = 'T';
+                        awayResult = 'T';
+                    }
+                    
+                    return {
+                        homeResult: homeResult,
+                        awayResult: awayResult,
+                        score: `${homeScore}-${awayScore}`
+                    };
+                } else {
+                    // Game not played yet
+                    return {
+                        homeResult: null,
+                        awayResult: null,
+                        score: null
+                    };
+                }
+            }
+
+            getShortTeamName(fullName) {
+                // Comprehensive team name abbreviations
+                const abbreviations = {
+                    // FBS Teams
+                    'Alabama Crimson Tide': 'Alabama',
+                    'Auburn Tigers': 'Auburn',
+                    'Georgia Bulldogs': 'Georgia',
+                    'Florida Gators': 'Florida',
+                    'LSU Tigers': 'LSU',
+                    'Tennessee Volunteers': 'Tennessee',
+                    'Texas A&M Aggies': 'Texas A&M',
+                    'Ole Miss Rebels': 'Ole Miss',
+                    'Mississippi State Bulldogs': 'Miss St',
+                    'Kentucky Wildcats': 'Kentucky',
+                    'South Carolina Gamecocks': 'S Carolina',
+                    'Vanderbilt Commodores': 'Vanderbilt',
+                    'Missouri Tigers': 'Missouri',
+                    'Arkansas Razorbacks': 'Arkansas',
+                    'Texas Longhorns': 'Texas',
+                    'Oklahoma Sooners': 'Oklahoma',
+                    'Ohio State Buckeyes': 'Ohio St',
+                    'Michigan Wolverines': 'Michigan',
+                    'Penn State Nittany Lions': 'Penn St',
+                    'Wisconsin Badgers': 'Wisconsin',
+                    'Iowa Hawkeyes': 'Iowa',
+                    'Nebraska Cornhuskers': 'Nebraska',
+                    'Michigan State Spartans': 'Mich St',
+                    'Minnesota Golden Gophers': 'Minnesota',
+                    'Purdue Boilermakers': 'Purdue',
+                    'Indiana Hoosiers': 'Indiana',
+                    'Maryland Terrapins': 'Maryland',
+                    'Rutgers Scarlet Knights': 'Rutgers',
+                    'Illinois Fighting Illini': 'Illinois',
+                    'Northwestern Wildcats': 'Northwestern',
+                    'Clemson Tigers': 'Clemson',
+                    'Florida State Seminoles': 'FSU',
+                    'Miami Hurricanes': 'Miami',
+                    'North Carolina Tar Heels': 'UNC',
+                    'Virginia Tech Hokies': 'Va Tech',
+                    'Louisville Cardinals': 'Louisville',
+                    'Pittsburgh Panthers': 'Pitt',
+                    'Syracuse Orange': 'Syracuse',
+                    'Boston College Eagles': 'BC',
+                    'Wake Forest Demon Deacons': 'Wake Forest',
+                    'Duke Blue Devils': 'Duke',
+                    'Virginia Cavaliers': 'Virginia',
+                    'Georgia Tech Yellow Jackets': 'Ga Tech',
+                    'Notre Dame Fighting Irish': 'Notre Dame',
+                    'USC Trojans': 'USC',
+                    'UCLA Bruins': 'UCLA',
+                    'Oregon Ducks': 'Oregon',
+                    'Washington Huskies': 'Washington',
+                    'Utah Utes': 'Utah',
+                    'Stanford Cardinal': 'Stanford',
+                    'California Golden Bears': 'Cal',
+                    'Arizona State Sun Devils': 'Arizona St',
+                    'Arizona Wildcats': 'Arizona',
+                    'Colorado Buffaloes': 'Colorado',
+                    'Oregon State Beavers': 'Oregon St',
+                    'Washington State Cougars': 'Wash St',
+                    
+                    // Additional FBS Teams
+                    'Kansas State Wildcats': 'K State',
+                    'Iowa State Cyclones': 'Iowa St',
+                    'Kansas Jayhawks': 'Kansas',
+                    'Oklahoma State Cowboys': 'Okla St',
+                    'Texas Tech Red Raiders': 'Texas Tech',
+                    'TCU Horned Frogs': 'TCU',
+                    'Baylor Bears': 'Baylor',
+                    'West Virginia Mountaineers': 'W Virginia',
+                    'Cincinnati Bearcats': 'Cincinnati',
+                    'UCF Knights': 'UCF',
+                    'Houston Cougars': 'Houston',
+                    'BYU Cougars': 'BYU',
+                    'Utah State Aggies': 'Utah St',
+                    'Boise State Broncos': 'Boise St',
+                    'San Diego State Aztecs': 'SDSU',
+                    'Fresno State Bulldogs': 'Fresno St',
+                    'Air Force Falcons': 'Air Force',
+                    'Army Black Knights': 'Army',
+                    'Navy Midshipmen': 'Navy',
+                    'Tulane Green Wave': 'Tulane',
+                    'SMU Mustangs': 'SMU',
+                    'Memphis Tigers': 'Memphis',
+                    'Temple Owls': 'Temple',
+                    'South Florida Bulls': 'USF',
+                    'East Carolina Pirates': 'ECU',
+                    'Marshall Thundering Herd': 'Marshall',
+                    'App State Mountaineers': 'App St',
+                    'Coastal Carolina Chanticleers': 'Coastal',
+                    'Georgia Southern Eagles': 'Ga Southern',
+                    'Troy Trojans': 'Troy',
+                    'South Alabama Jaguars': 'S Alabama',
+                    'Louisiana Ragin\' Cajuns': 'Louisiana',
+                    'Louisiana-Monroe Warhawks': 'ULM',
+                    'Arkansas State Red Wolves': 'Ark St',
+                    'Texas State Bobcats': 'Texas St',
+                    'UTSA Roadrunners': 'UTSA',
+                    'North Texas Mean Green': 'N Texas',
+                    'Rice Owls': 'Rice',
+                    'Charlotte 49ers': 'Charlotte',
+                    'Florida Atlantic Owls': 'FAU',
+                    'FIU Panthers': 'FIU',
+                    'Middle Tennessee Blue Raiders': 'MTSU',
+                    'Western Kentucky Hilltoppers': 'WKU',
+                    'Old Dominion Monarchs': 'ODU',
+                    'Liberty Flames': 'Liberty',
+                    'New Mexico State Aggies': 'NMSU',
+                    'Hawai\'i Rainbow Warriors': 'Hawaii',
+                    'Nevada Wolf Pack': 'Nevada',
+                    'UNLV Rebels': 'UNLV',
+                    'San Jose State Spartans': 'SJSU',
+                    'Wyoming Cowboys': 'Wyoming',
+                    'Colorado State Rams': 'CSU',
+                    'New Mexico Lobos': 'N Mexico',
+                    'Akron Zips': 'Akron',
+                    'Ball State Cardinals': 'Ball St',
+                    'Bowling Green Falcons': 'BGSU',
+                    'Buffalo Bulls': 'Buffalo',
+                    'Central Michigan Chippewas': 'CMU',
+                    'Eastern Michigan Eagles': 'EMU',
+                    'Kent State Golden Flashes': 'Kent St',
+                    'Miami (OH) RedHawks': 'Miami OH',
+                    'Northern Illinois Huskies': 'NIU',
+                    'Ohio Bobcats': 'Ohio',
+                    'Toledo Rockets': 'Toledo',
+                    'Western Michigan Broncos': 'WMU',
+                    'Florida International Golden Panthers': 'FIU',
+                    'Miami (FL) Hurricanes': 'Miami',
+                    
+                    // FCS Teams
+                    'North Dakota State Bison': 'ND State',
+                    'South Dakota State Jackrabbits': 'SD State',
+                    'Montana Grizzlies': 'Montana',
+                    'Montana State Bobcats': 'Montana St',
+                    'Weber State Wildcats': 'Weber St',
+                    'Sacramento State Hornets': 'Sac St',
+                    'Eastern Washington Eagles': 'E Washington',
+                    'Idaho Vandals': 'Idaho',
+                    'Idaho State Bengals': 'Idaho St',
+                    'Northern Arizona Lumberjacks': 'N Arizona',
+                    'Portland State Vikings': 'Portland St',
+                    'Cal Poly Mustangs': 'Cal Poly',
+                    'UC Davis Aggies': 'UC Davis',
+                    'Southern Utah Thunderbirds': 'S Utah',
+                    'Northern Colorado Bears': 'N Colorado',
+                    'Abilene Christian Wildcats': 'Abilene Chr',
+                    'Central Arkansas Bears': 'C Arkansas',
+                    'Lamar Cardinals': 'Lamar',
+                    'McNeese Cowboys': 'McNeese',
+                    'Nicholls Colonels': 'Nicholls',
+                    'Northwestern State Demons': 'NW State',
+                    'Southeastern Louisiana Lions': 'SE Louisiana',
+                    'Stephen F. Austin Lumberjacks': 'SFA',
+                    'Texas A&M-Commerce Lions': 'TAMU-Commerce',
+                    'Incarnate Word Cardinals': 'Incarnate Word',
+                    'Sam Houston Bearkats': 'Sam Houston',
+                    'Houston Baptist Huskies': 'Houston Baptist',
+                    'Jacksonville State Gamecocks': 'Jax State',
+                    'Kennesaw State Owls': 'Kennesaw St',
+                    'North Alabama Lions': 'N Alabama',
+                    'Austin Peay Governors': 'Austin Peay',
+                    'Eastern Illinois Panthers': 'E Illinois',
+                    'Murray State Racers': 'Murray St',
+                    'Southeast Missouri State Redhawks': 'SEMO',
+                    'SIU Edwardsville Cougars': 'SIUE',
+                    'Tennessee State Tigers': 'Tenn St',
+                    'Tennessee Tech Golden Eagles': 'Tenn Tech',
+                    'UT Martin Skyhawks': 'UT Martin',
+                    'Alabama A&M Bulldogs': 'Alabama A&M',
+                    'Alabama State Hornets': 'Alabama St',
+                    'Alcorn State Braves': 'Alcorn St',
+                    'Arkansas-Pine Bluff Golden Lions': 'Ark-PB',
+                    'Bethune-Cookman Wildcats': 'Bethune-Cook',
+                    'Florida A&M Rattlers': 'FAMU',
+                    'Grambling State Tigers': 'Grambling',
+                    'Jackson State Tigers': 'Jackson St',
+                    'Mississippi Valley State Delta Devils': 'MVSU',
+                    'Prairie View A&M Panthers': 'Prairie View',
+                    'Southern Jaguars': 'Southern',
+                    'Texas Southern Tigers': 'Texas Southern',
+                    'Chattanooga Mocs': 'Chattanooga',
+                    'East Tennessee State Buccaneers': 'ETSU',
+                    'Furman Paladins': 'Furman',
+                    'Mercer Bears': 'Mercer',
+                    'Samford Bulldogs': 'Samford',
+                    'The Citadel Bulldogs': 'Citadel',
+                    'VMI Keydets': 'VMI',
+                    'Wofford Terriers': 'Wofford',
+                    'Bucknell Bison': 'Bucknell',
+                    'Colgate Raiders': 'Colgate',
+                    'Fordham Rams': 'Fordham',
+                    'Georgetown Hoyas': 'Georgetown',
+                    'Holy Cross Crusaders': 'Holy Cross',
+                    'Lafayette Leopards': 'Lafayette',
+                    'Lehigh Mountain Hawks': 'Lehigh',
+                    'Butler Bulldogs': 'Butler',
+                    'Davidson Wildcats': 'Davidson',
+                    'Dayton Flyers': 'Dayton',
+                    'Drake Bulldogs': 'Drake',
+                    'Marist Red Foxes': 'Marist',
+                    'Morehead State Eagles': 'Morehead St',
+                    'San Diego Toreros': 'San Diego',
+                    'Stetson Hatters': 'Stetson',
+                    'Valparaiso Beacons': 'Valparaiso',
+                    'Illinois State Redbirds': 'Illinois St',
+                    'Indiana State Sycamores': 'Indiana St',
+                    'Missouri State Bears': 'Missouri St',
+                    'North Dakota Fighting Hawks': 'N Dakota',
+                    'South Dakota Coyotes': 'S Dakota',
+                    'Southern Illinois Salukis': 'S Illinois',
+                    'Western Illinois Leathernecks': 'W Illinois',
+                    'Youngstown State Penguins': 'Youngstown St',
+                    'Charleston Southern Buccaneers': 'Charleston So',
+                    'Gardner-Webb Runnin\' Bulldogs': 'Gardner-Webb',
+                    'Hampton Pirates': 'Hampton',
+                    'Monmouth Hawks': 'Monmouth',
+                    'North Carolina A&T Aggies': 'NC A&T',
+                    'North Carolina Central Eagles': 'NC Central',
+                    'Presbyterian Blue Hose': 'Presbyterian',
+                    'Robert Morris Colonials': 'Robert Morris',
+                    'St. Francis (PA) Red Flash': 'St Francis',
+                    'Wagner Seahawks': 'Wagner',
+                    'Bryant Bulldogs': 'Bryant',
+                    'Campbell Fighting Camels': 'Campbell',
+                    'Delaware Blue Hens': 'Delaware',
+                    'Elon Phoenix': 'Elon',
+                    'Hampton Pirates': 'Hampton',
+                    'Maine Black Bears': 'Maine',
+                    'New Hampshire Wildcats': 'New Hampshire',
+                    'Rhode Island Rams': 'Rhode Island',
+                    'Richmond Spiders': 'Richmond',
+                    'Stony Brook Seawolves': 'Stony Brook',
+                    'Towson Tigers': 'Towson',
+                    'Villanova Wildcats': 'Villanova',
+                    'William & Mary Tribe': 'W&M',
+                    'Albany Great Danes': 'Albany',
+                    'Delaware State Hornets': 'Delaware St',
+                    'Howard Bison': 'Howard',
+                    'Morgan State Bears': 'Morgan St',
+                    'Norfolk State Spartans': 'Norfolk St',
+                    'South Carolina State Bulldogs': 'SC State',
+                    'Virginia Lynchburg Dragons': 'Va Lynchburg',
+                    'Virginia Union Panthers': 'Va Union',
+                    'Winston-Salem State Rams': 'WSSU'
+                };
+                
+                // If no abbreviation found, try to create a shorter version
+                if (abbreviations[fullName]) {
+                    return abbreviations[fullName];
+                }
+                
+                // For very long names, try to get just the first word or first two short words
+                const words = fullName.split(' ');
+                if (words.length >= 3) {
+                    // Try first two words if they're short enough
+                    const firstTwo = words.slice(0, 2).join(' ');
+                    if (firstTwo.length <= 8) {
+                        return firstTwo;
+                    }
+                }
+                
+                // Fallback to first word only, but limit to 8 characters
+                const firstWord = words[0];
+                return firstWord.length > 8 ? firstWord.substring(0, 8) : firstWord;
+            }
+
+
+
+
+            renderAllDivisions() {
+                const matrixContainer = document.getElementById('scheduleMatrix');
+                matrixContainer.innerHTML = '';
+
+                // Render FBS Division
+                this.renderDivisionSection('FBS', 'FBS (Football Bowl Subdivision)');
+                
+                // Render FCS Division
+                this.renderDivisionSection('FCS', 'FCS (Football Championship Subdivision)');
+            }
+
+
+            renderDivisionSection(division, title) {
+                const matrixContainer = document.getElementById('scheduleMatrix');
+                const divisionData = this.scheduleData[division];
+                if (!divisionData) return;
+
+                // Get the maximum number of weeks to align with shared headers
+                const fbsWeeks = this.scheduleData.FBS ? this.scheduleData.FBS.weeks.length : 0;
+                const fcsWeeks = this.scheduleData.FCS ? this.scheduleData.FCS.weeks.length : 0;
+                const maxWeeks = Math.max(fbsWeeks, fcsWeeks, 15);
+
+                // Create division header
+                const divisionHeader = document.createElement('div');
+                divisionHeader.className = 'division-header';
+                divisionHeader.innerHTML = `
+                    <span class="division-toggle">▼</span>
+                    <span class="division-name">${title}</span>
+                    <span class="division-count">(${divisionData.teams.length} teams)</span>
+                `;
+                
+                // Add click handler for toggle
+                divisionHeader.addEventListener('click', () => {
+                    const isCollapsed = divisionHeader.classList.contains('collapsed');
+                    const divisionContent = divisionHeader.nextElementSibling;
+                    
+                    if (isCollapsed) {
+                        divisionHeader.classList.remove('collapsed');
+                        divisionHeader.querySelector('.division-toggle').textContent = '▼';
+                        divisionContent.style.display = 'block';
+                    } else {
+                        divisionHeader.classList.add('collapsed');
+                        divisionHeader.querySelector('.division-toggle').textContent = '▶';
+                        divisionContent.style.display = 'none';
+                    }
+                });
+                
+                matrixContainer.appendChild(divisionHeader);
+
+                // Create division content container
+                const divisionContent = document.createElement('div');
+                divisionContent.className = 'division-content';
+                
+                // Create grid
+                const grid = document.createElement('div');
+                grid.className = 'schedule-matrix';
+                grid.style.gridTemplateColumns = `150px repeat(${maxWeeks}, 100px)`;
+
+                // Add conference groups
+                divisionData.conferenceGroups.forEach(conferenceGroup => {
+                    // Conference header row
+                    const conferenceHeader = document.createElement('div');
+                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs' : 'conference-header';
+                    conferenceHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
+                    conferenceHeader.style.cursor = 'pointer';
+                    conferenceHeader.innerHTML = `
+                        <span class="conference-toggle">▼</span>
+                        <span class="conference-name">${conferenceGroup.name}</span>
+                        <span class="conference-count">(${conferenceGroup.teams.length} teams)</span>
+                    `;
+                    
+                    // Add click handler for toggle
+                    conferenceHeader.addEventListener('click', () => {
+                        const isCollapsed = conferenceHeader.classList.contains('collapsed');
+                        const weekHeadersRow = conferenceHeader.nextElementSibling;
+                        const conferenceRows = weekHeadersRow.nextElementSibling;
+                        
+                        if (isCollapsed) {
+                            conferenceHeader.classList.remove('collapsed');
+                            conferenceHeader.querySelector('.conference-toggle').textContent = '▼';
+                            weekHeadersRow.style.display = 'contents';
+                            conferenceRows.style.display = 'contents';
+                        } else {
+                            conferenceHeader.classList.add('collapsed');
+                            conferenceHeader.querySelector('.conference-toggle').textContent = '▶';
+                            weekHeadersRow.style.display = 'none';
+                            conferenceRows.style.display = 'none';
+                        }
+                    });
+                    
+                    grid.appendChild(conferenceHeader);
+
+                    // Add week headers for this conference
+                    const weekHeadersRow = document.createElement('div');
+                    weekHeadersRow.className = 'week-headers-row';
+                    weekHeadersRow.style.display = 'contents';
+                    
+                    // Teams header
+                    const teamsHeader = document.createElement('div');
+                    teamsHeader.className = 'week-header teams-header';
+                    teamsHeader.textContent = 'Teams';
+                    weekHeadersRow.appendChild(teamsHeader);
+                    
+                    // Week headers
+                    for (let week = 1; week <= maxWeeks; week++) {
+                        const weekHeader = document.createElement('div');
+                        weekHeader.className = 'week-header';
+                        weekHeader.textContent = `Week ${week}`;
+                        weekHeadersRow.appendChild(weekHeader);
+                    }
+                    
+                    grid.appendChild(weekHeadersRow);
+
+                    // Create container for conference teams
+                    const conferenceContainer = document.createElement('div');
+                    conferenceContainer.className = 'conference-teams';
+                    conferenceContainer.style.display = 'contents';
+
+                    // Teams in this conference
+                    conferenceGroup.teams.forEach((team, teamIndex) => {
+                        
+                        // Team name header with logo
+                        const teamHeader = document.createElement('div');
+                        teamHeader.className = 'team-header';
+                        // Create shortened team name
+                        const shortName = this.getShortTeamName(team.name);
+                        
+                        teamHeader.innerHTML = `
+                            <img src="${team.logo || ''}" alt="${team.name}" class="team-logo" onerror="this.style.display='none'">
+                            <span class="team-name" title="${team.name}">${shortName}</span>
+                        `;
+                        conferenceContainer.appendChild(teamHeader);
+
+                        // Team's games for each week
+                        divisionData.weeks.forEach((week, weekIndex) => {
+                            const game = divisionData.matrix[team.name][week];
+                        const gameCell = document.createElement('div');
+                        
+                            if (game) {
+                                const homeAwayClass = game.homeAway === 'H' ? 'home' : 'away';
+                                const opponentShortName = this.getShortTeamName(game.opponent);
+                                const isHome = game.homeAway === 'H';
+                                
+                                // Parse score for home/away display
+                                let homeScore = '';
+                                let awayScore = '';
+                                if (game.score) {
+                                    const scores = game.score.split('-');
+                                    if (scores.length === 2) {
+                                        homeScore = scores[0];
+                                        awayScore = scores[1];
+                                    }
+                                }
+                                
+                                // Determine if row team won/lost for cell background
+                                let cellClass = 'matrix-cell';
+                                if (game.result && game.score) {
+                                    const homeScoreNum = parseInt(homeScore);
+                                    const awayScoreNum = parseInt(awayScore);
+                                    
+                                    // Check if the ROW TEAM won or lost
+                                    const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
+                                    const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
+                                    const isTie = homeScoreNum === awayScoreNum;
+                                    
+                                    if (rowTeamWon) {
+                                        cellClass += ' win-cell';
+                                    } else if (rowTeamLost) {
+                                        cellClass += ' loss-cell';
+                                    } else if (isTie) {
+                                        cellClass += ' tie-cell';
+                                    }
+                                }
+                                
+                                // Set the cell class
+                                gameCell.className = cellClass;
+                                
+                                // Determine which team is actually home and which is away
+                                const homeTeam = isHome ? team : { logo: game.opponentLogo, name: game.opponent, shortName: opponentShortName };
+                                const awayTeam = isHome ? { logo: game.opponentLogo, name: game.opponent, shortName: opponentShortName } : team;
+                                const homeTeamScore = isHome ? homeScore : awayScore;
+                                const awayTeamScore = isHome ? awayScore : homeScore;
+                                
+                        gameCell.innerHTML = `
+                                    <div class="game-card">
+                                        <div class="team-row home-team">
+                                            <span class="score">${homeTeamScore || ''}</span>
+                                            <div class="team-logo-container">
+                                                <img src="${homeTeam.logo || ''}" alt="${homeTeam.name}" class="team-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                <span class="team-name-fallback" style="display: none;">${homeTeam.shortName}</span>
+                                            </div>
+                                        </div>
+                                        <div class="team-row away-team">
+                                            <span class="score">${awayTeamScore || ''}</span>
+                                            <div class="team-logo-container">
+                                                <img src="${awayTeam.logo || ''}" alt="${awayTeam.name}" class="team-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                <span class="team-name-fallback" style="display: none;">${awayTeam.shortName}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                gameCell.className = 'matrix-cell';
+                                gameCell.innerHTML = '<div class="bye">BYE</div>';
+                            }
+                        
+                        conferenceContainer.appendChild(gameCell);
+                        });
+                    });
+                    
+                    // Add the conference container to the grid
+                    grid.appendChild(conferenceContainer);
+                });
+
+                divisionContent.appendChild(grid);
+                matrixContainer.appendChild(divisionContent);
+            }
+
+            renderDivisionMatrix() {
+                try {
+                const matrixContainer = document.getElementById('scheduleMatrix');
+                matrixContainer.innerHTML = '';
+
+                    const divisionData = this.scheduleData[this.currentDivision];
+                    if (!divisionData) {
+                        matrixContainer.innerHTML = '<div class="no-games">No data available for this division</div>';
+                    return;
+                }
+
+                // Division header removed - no longer inside the frame
+
+                // Create matrix grid
+                const grid = document.createElement('div');
+                grid.className = 'schedule-matrix';
+                
+                // Calculate grid columns: 1 for team names + number of weeks
+                const totalColumns = 1 + divisionData.weeks.length;
+                grid.style.gridTemplateColumns = `150px repeat(${divisionData.weeks.length}, 100px)`;
+                grid.style.display = 'grid';
+                grid.style.gap = '1px';
+                grid.style.backgroundColor = 'transparent';
+                grid.style.borderRadius = '0';
+                grid.style.overflow = 'hidden';
+                grid.style.marginTop = '20px';
+                grid.style.border = 'none';
+                grid.style.width = 'fit-content';
+                grid.style.maxWidth = 'fit-content';
+
+                // Add empty cell for top-left corner
+                const cornerCell = document.createElement('div');
+                cornerCell.className = 'week-header';
+                cornerCell.textContent = 'Teams';
+                grid.appendChild(cornerCell);
+
+                // Add week headers
+                divisionData.weeks.forEach(week => {
+                const weekHeader = document.createElement('div');
+                weekHeader.className = 'week-header';
+                    weekHeader.textContent = `Week ${week}`;
+                grid.appendChild(weekHeader);
+                });
+
+                // Add conference groups
+                divisionData.conferenceGroups.forEach(conferenceGroup => {
+                    // Conference header row with toggle functionality
+                    const conferenceHeader = document.createElement('div');
+                    conferenceHeader.className = conferenceGroup.name === 'Non-FCS Opponents' ? 'conference-header non-fcs' : 'conference-header';
+                    conferenceHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
+                    conferenceHeader.style.cursor = 'pointer';
+                    conferenceHeader.innerHTML = `
+                        <span class="conference-toggle">▼</span>
+                        <span class="conference-name">${conferenceGroup.name}</span>
+                        <span class="conference-count">(${conferenceGroup.teams.length} teams)</span>
+                    `;
+                    
+                    // Add click handler for toggle
+                    conferenceHeader.addEventListener('click', () => {
+                        const isCollapsed = conferenceHeader.classList.contains('collapsed');
+                        const weekHeadersRow = conferenceHeader.nextElementSibling;
+                        const conferenceRows = weekHeadersRow.nextElementSibling;
+                        
+                        if (isCollapsed) {
+                            conferenceHeader.classList.remove('collapsed');
+                            conferenceHeader.querySelector('.conference-toggle').textContent = '▼';
+                            weekHeadersRow.style.display = 'contents';
+                            conferenceRows.style.display = 'contents';
+                        } else {
+                            conferenceHeader.classList.add('collapsed');
+                            conferenceHeader.querySelector('.conference-toggle').textContent = '▶';
+                            weekHeadersRow.style.display = 'none';
+                            conferenceRows.style.display = 'none';
+                        }
+                    });
+                    
+                    grid.appendChild(conferenceHeader);
+
+                    // Create container for conference teams
+                    const conferenceContainer = document.createElement('div');
+                    conferenceContainer.className = 'conference-teams';
+                    conferenceContainer.style.display = 'contents';
+
+                    // Teams in this conference
+                    conferenceGroup.teams.forEach((team, teamIndex) => {
+                    
+                    // Team name header with logo
+                    const teamHeader = document.createElement('div');
+                    teamHeader.className = 'team-header';
+                    // Create shortened team name
+                    const shortName = this.getShortTeamName(team.name);
+                    
+                    teamHeader.innerHTML = `
+                        <img src="${team.logo || ''}" alt="${team.name}" class="team-logo" onerror="this.style.display='none'">
+                        <span class="team-name" title="${team.name}">${shortName}</span>
+                    `;
+                        conferenceContainer.appendChild(teamHeader);
+
+                    // Team's games for each week
+                    divisionData.weeks.forEach((week, weekIndex) => {
+                        const game = divisionData.matrix[team.name][week];
+                    const gameCell = document.createElement('div');
+                    
+                        if (game) {
+                                const homeAwayClass = game.homeAway === 'H' ? 'home' : 'away';
+                                const opponentShortName = this.getShortTeamName(game.opponent);
+                                const isHome = game.homeAway === 'H';
+                                
+                                // Parse score for home/away display
+                                let homeScore = '';
+                                let awayScore = '';
+                                if (game.score) {
+                                    const scores = game.score.split('-');
+                                    if (scores.length === 2) {
+                                        homeScore = scores[0];
+                                        awayScore = scores[1];
+                                    }
+                                }
+                                
+                                // Determine if row team won/lost for cell background
+                                let cellClass = 'matrix-cell';
+                                if (game.result && game.score) {
+                                    const homeScoreNum = parseInt(homeScore);
+                                    const awayScoreNum = parseInt(awayScore);
+                                    
+                                    // Check if the ROW TEAM won or lost
+                                    const rowTeamWon = (isHome && homeScoreNum > awayScoreNum) || (!isHome && awayScoreNum > homeScoreNum);
+                                    const rowTeamLost = (isHome && homeScoreNum < awayScoreNum) || (!isHome && awayScoreNum < homeScoreNum);
+                                    const isTie = homeScoreNum === awayScoreNum;
+                                    
+                                    if (rowTeamWon) {
+                                        cellClass += ' win-cell';
+                                    } else if (rowTeamLost) {
+                                        cellClass += ' loss-cell';
+                                    } else if (isTie) {
+                                        cellClass += ' tie-cell';
+                                    }
+                                }
+                                
+                                // Set the cell class
+                                gameCell.className = cellClass;
+                                
+                                // Determine which team is actually home and which is away
+                                const homeTeam = isHome ? team : { logo: game.opponentLogo, name: game.opponent, shortName: opponentShortName };
+                                const awayTeam = isHome ? { logo: game.opponentLogo, name: game.opponent, shortName: opponentShortName } : team;
+                                const homeTeamScore = isHome ? homeScore : awayScore;
+                                const awayTeamScore = isHome ? awayScore : homeScore;
+                                
+                    gameCell.innerHTML = `
+                                    <div class="game-card">
+                                        <div class="team-row home-team">
+                                            <span class="score">${homeTeamScore || ''}</span>
+                                            <div class="team-logo-container">
+                                                <img src="${homeTeam.logo || ''}" alt="${homeTeam.name}" class="team-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                <span class="team-name-fallback" style="display: none;">${homeTeam.shortName}</span>
+                                            </div>
+                                        </div>
+                                        <div class="team-row away-team">
+                                            <span class="score">${awayTeamScore || ''}</span>
+                                            <div class="team-logo-container">
+                                                <img src="${awayTeam.logo || ''}" alt="${awayTeam.name}" class="team-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                <span class="team-name-fallback" style="display: none;">${awayTeam.shortName}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                            `;
+                        } else {
+                                gameCell.className = 'matrix-cell';
+                                gameCell.innerHTML = '<div class="bye">BYE</div>';
+                        }
+                    
+                        conferenceContainer.appendChild(gameCell);
+                    });
+                });
+
+                    // Add the conference container to the grid
+                    grid.appendChild(conferenceContainer);
+                });
+
+                matrixContainer.appendChild(grid);
+                } catch (error) {
+                    console.error('Error in renderConferenceMatrix:', error);
+                    matrixContainer.innerHTML = '<div class="no-games">Error rendering schedule matrix</div>';
+                }
+            }
+
+            showLoading() {
+                document.getElementById('loadingMessage').style.display = 'block';
+                document.getElementById('scheduleMatrix').style.display = 'none';
+            }
+
+            hideLoading() {
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('scheduleMatrix').style.display = 'block';
+            }
+
+            showError(message) {
+                const matrixContainer = document.getElementById('scheduleMatrix');
+                matrixContainer.innerHTML = `<div class="no-games">${message}</div>`;
+                this.hideLoading();
+            }
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new CFBScheduleMatrix();
+        });
+    </script>
+</body>
+</html>
