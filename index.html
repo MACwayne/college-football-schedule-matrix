@@ -2922,8 +2922,10 @@
                 // Get the number of weeks
                 const maxWeeks = parseInt(grid.style.gridTemplateColumns.split('repeat(')[1].split(',')[0]);
                 
-                // Remove old rankings section
+                // Check if rankings were expanded before removal
                 const oldRankingsHeader = divisionElement.querySelector('.rankings-conference');
+                const wasExpanded = oldRankingsHeader && !oldRankingsHeader.classList.contains('collapsed');
+                
                 if (oldRankingsHeader) {
                     // Remove the header, week headers, and rows
                     const weekHeaders = oldRankingsHeader.nextElementSibling;
@@ -2940,12 +2942,20 @@
                     tempDiv.appendChild(grid.firstChild);
                 }
                 
-                // Add rankings at the top (always visible)
+                // Add rankings at the top
                 this.addRankingsConference(grid, division, maxWeeks);
                 
                 // Re-add all the other children after the rankings
                 while (tempDiv.firstChild) {
                     grid.appendChild(tempDiv.firstChild);
+                }
+                
+                // If rankings were expanded before, re-expand them
+                if (wasExpanded) {
+                    const newRankingsHeader = divisionElement.querySelector('.rankings-conference');
+                    if (newRankingsHeader) {
+                        newRankingsHeader.click(); // Trigger the toggle to expand
+                    }
                 }
             }
 
