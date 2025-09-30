@@ -999,6 +999,11 @@
                         teamsByConference.set(conference, []);
                     }
                     teamsByConference.get(conference).push(team);
+                    
+                    // Debug: Check if Army is in the teams
+                    if (teamName === 'Army') {
+                        console.log(`🎖️ ARMY FOUND IN DATA: ${teamName}, conference: ${conference}`);
+                    }
                 });
                 
                 console.log(`🔍 ${division} Conference Groups:`);
