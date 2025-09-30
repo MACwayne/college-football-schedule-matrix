@@ -609,7 +609,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>College Football Schedule Matrix - 2025 Season</h1>
+            <h1>College Football Schedule Matrix - 2024 Season</h1>
             <div class="instructions">
                 <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag team rows to swap home/away positions • Drag team rows onto themselves to swap home/away within same game • Drag team headers to swap opponents • Teams automatically removed from previous games</p>
             </div>
@@ -1331,32 +1331,14 @@
                     // Try 2025 season first, fallback to 2024 if needed
                     let fbsResponse, fcsResponse;
                     
-                    try {
-                        console.log('📡 Trying 2025 season...');
-                        [fbsResponse, fcsResponse] = await Promise.all([
-                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&limit=1000`),
-                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&groups=81&limit=1000`)
-                        ]);
-                        
-                        console.log(`📊 2025 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
-                        
-                        // If 2025 data is empty or error, try 2024
-                        if (!fbsResponse.ok || !fcsResponse.ok || fbsResponse.status === 204) {
-                            console.log('⚠️ 2025 data not available, trying 2024...');
-                            [fbsResponse, fcsResponse] = await Promise.all([
-                                fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&limit=1000`),
-                                fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&groups=81&limit=1000`)
-                            ]);
-                            console.log(`📊 2024 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
-                        }
-                    } catch (error) {
-                        console.log('⚠️ 2025 failed, trying 2024...', error);
-                        [fbsResponse, fcsResponse] = await Promise.all([
-                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&limit=1000`),
-                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&groups=81&limit=1000`)
-                        ]);
-                        console.log(`📊 2024 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
-                    }
+                    // Use 2024 season data since 2025 hasn't started yet
+                    console.log('📡 Using 2024 season data...');
+                    [fbsResponse, fcsResponse] = await Promise.all([
+                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&limit=1000`),
+                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&groups=81&limit=1000`)
+                    ]);
+                    
+                    console.log(`📊 2024 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
                     
                     if (!fbsResponse.ok || !fcsResponse.ok) {
                         throw new Error(`ESPN API error! FBS status: ${fbsResponse.status}, FCS status: ${fcsResponse.status}`);

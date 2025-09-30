@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>ESPN API Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            
+            try {
+                console.log('Testing 2025 API...');
+                const response2025 = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&limit=1000');
+                console.log('2025 Response:', response2025.status);
+                
+                const data2025 = await response2025.json();
+                console.log('2025 Data:', data2025);
+                
+                results.innerHTML += `<h2>2025 Season (${response2025.status})</h2>`;
+                results.innerHTML += `<p>Events: ${data2025.events?.length || 0}</p>`;
+                results.innerHTML += `<pre>${JSON.stringify(data2025, null, 2)}</pre>`;
+                
+            } catch (error) {
+                console.error('2025 Error:', error);
+                results.innerHTML += `<h2>2025 Error</h2><p>${error.message}</p>`;
+            }
+            
+            try {
+                console.log('Testing 2024 API...');
+                const response2024 = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&limit=1000');
+                console.log('2024 Response:', response2024.status);
+                
+                const data2024 = await response2024.json();
+                console.log('2024 Data:', data2024);
+                
+                results.innerHTML += `<h2>2024 Season (${response2024.status})</h2>`;
+                results.innerHTML += `<p>Events: ${data2024.events?.length || 0}</p>`;
+                results.innerHTML += `<pre>${JSON.stringify(data2024, null, 2)}</pre>`;
+                
+            } catch (error) {
+                console.error('2024 Error:', error);
+                results.innerHTML += `<h2>2024 Error</h2><p>${error.message}</p>`;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>
