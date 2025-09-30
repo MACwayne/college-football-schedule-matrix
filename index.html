@@ -2950,8 +2950,27 @@
                 }
                 
                 // Add the rankings section again (this will recreate it with new data)
+                // But we need to insert it at the TOP, not the bottom
                 console.log(`🔧 Creating new rankings section...`);
+                
+                // Get the first child of the grid (should be the first conference header or team header)
+                const firstChild = grid.firstChild;
+                
+                // Temporarily store the grid's children
+                const tempDiv = document.createElement('div');
+                while (grid.firstChild) {
+                    tempDiv.appendChild(grid.firstChild);
+                }
+                
+                // Add rankings at the top
                 this.addRankingsConference(grid, division, maxWeeks);
+                
+                // Re-add all the other children after the rankings
+                while (tempDiv.firstChild) {
+                    grid.appendChild(tempDiv.firstChild);
+                }
+                
+                console.log(`📍 Rankings section repositioned to top`);
                 
                 // If it was expanded before, expand it again
                 if (wasExpanded) {
