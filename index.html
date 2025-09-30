@@ -180,6 +180,26 @@
             padding: 2px 8px 2px 4px;
             min-height: 20px;
             gap: 18px;
+            cursor: grab;
+            transition: background-color 0.2s ease;
+            border-radius: 3px;
+        }
+
+        .team-row:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .team-row:active {
+            cursor: grabbing;
+        }
+
+        .team-row.dragging {
+            opacity: 0.5;
+        }
+
+        .team-row.drag-over {
+            background-color: rgba(46, 204, 113, 0.2);
+            border: 2px dashed #2ecc71;
         }
 
         .team-row.home-team {
@@ -486,7 +506,7 @@
         <header>
             <h1>College Football Schedule Matrix - 2025 Season</h1>
             <div class="instructions">
-                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag team logos or headers to swap opponents • Teams automatically removed from previous games</p>
+                <p><strong>Interactive Features:</strong> Click game cells to toggle win/loss • Drag team rows (top/bottom halves) to swap home/away positions • Drag team logos or headers to swap opponents • Teams automatically removed from previous games</p>
             </div>
         </header>
         
@@ -2161,6 +2181,17 @@
                     logo.addEventListener('dragstart', (e) => this.handleLogoDragStart(e));
                     logo.addEventListener('dragend', (e) => this.handleDragEnd(e));
                 });
+
+                // Re-add event listeners to the new team-rows
+                const teamRows = cell.querySelectorAll('.team-row');
+                teamRows.forEach(row => {
+                    row.draggable = true;
+                    row.addEventListener('dragstart', (e) => this.handleTeamRowDragStart(e));
+                    row.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                    row.addEventListener('dragover', (e) => this.handleTeamRowDragOver(e));
+                    row.addEventListener('dragleave', (e) => this.handleTeamRowDragLeave(e));
+                    row.addEventListener('drop', (e) => this.handleTeamRowDrop(e));
+                });
             }
 
             getTeamData(teamName) {
@@ -2218,12 +2249,28 @@
                     header.addEventListener('dragend', (e) => this.handleDragEnd(e));
                 });
 
+                // Make team rows draggable
+                const teamRows = document.querySelectorAll('.team-row');
+                teamRows.forEach(row => {
+                    row.draggable = true;
+                    row.addEventListener('dragstart', (e) => this.handleTeamRowDragStart(e));
+                    row.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                });
+
                 // Make team logos in game cells draggable
                 const teamLogos = document.querySelectorAll('.team-logo');
                 teamLogos.forEach(logo => {
                     logo.draggable = true;
                     logo.addEventListener('dragstart', (e) => this.handleLogoDragStart(e));
                     logo.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                });
+
+                // Make team rows droppable
+                const teamRows = document.querySelectorAll('.team-row');
+                teamRows.forEach(row => {
+                    row.addEventListener('dragover', (e) => this.handleTeamRowDragOver(e));
+                    row.addEventListener('dragleave', (e) => this.handleTeamRowDragLeave(e));
+                    row.addEventListener('drop', (e) => this.handleTeamRowDrop(e));
                 });
 
                 // Make game cells droppable
@@ -2238,6 +2285,31 @@
             handleDragStart(event) {
                 const teamName = event.target.getAttribute('data-team');
                 event.dataTransfer.setData('text/plain', teamName);
+                event.dataTransfer.effectAllowed = 'move';
+                event.target.classList.add('dragging');
+            }
+
+            handleTeamRowDragStart(event) {
+                // Find the team name from the team-row's parent cell
+                const gameCell = event.target.closest('[data-team]');
+                if (!gameCell) return;
+                
+                const teamName = gameCell.getAttribute('data-team');
+                const week = gameCell.getAttribute('data-week');
+                const isScored = gameCell.getAttribute('data-is-scored') === 'true';
+                const isHome = event.target.classList.contains('home-team');
+                
+                // Don't allow dragging from scored games
+                if (isScored) {
+                    event.preventDefault();
+                    return;
+                }
+                
+                // Store team data for context
+                event.dataTransfer.setData('text/plain', teamName);
+                event.dataTransfer.setData('text/week', week);
+                event.dataTransfer.setData('text/source', 'team-row');
+                event.dataTransfer.setData('text/home-away', isHome ? 'H' : 'A');
                 event.dataTransfer.effectAllowed = 'move';
                 event.target.classList.add('dragging');
             }
@@ -2273,6 +2345,92 @@
 
             handleDragLeave(event) {
                 event.target.classList.remove('drag-over');
+            }
+
+            handleTeamRowDragOver(event) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                event.target.classList.add('drag-over');
+            }
+
+            handleTeamRowDragLeave(event) {
+                event.target.classList.remove('drag-over');
+            }
+
+            handleTeamRowDrop(event) {
+                event.preventDefault();
+                
+                // Remove drag-over class
+                event.target.classList.remove('drag-over');
+                
+                const draggedTeam = event.dataTransfer.getData('text/plain');
+                const draggedWeek = event.dataTransfer.getData('text/week');
+                const source = event.dataTransfer.getData('text/source');
+                const draggedHomeAway = event.dataTransfer.getData('text/home-away');
+                
+                // Find target team-row info
+                const targetTeamRow = event.target;
+                const targetGameCell = targetTeamRow.closest('[data-team]');
+                if (!targetGameCell) return;
+
+                const targetTeam = targetGameCell.getAttribute('data-team');
+                const targetWeek = targetGameCell.getAttribute('data-week');
+                const isScored = targetGameCell.getAttribute('data-is-scored') === 'true';
+                const targetIsHome = targetTeamRow.classList.contains('home-team');
+
+                // Don't allow drops on scored games
+                if (isScored) {
+                    console.log('Cannot modify already scored games');
+                    return;
+                }
+
+                // Don't allow dropping on same team
+                if (draggedTeam === targetTeam) {
+                    console.log('Cannot drop team on itself');
+                    return;
+                }
+
+                // Handle team-row specific drop
+                this.handleTeamRowSwap(draggedTeam, targetTeam, targetWeek, targetIsHome ? 'H' : 'A', draggedHomeAway);
+            }
+
+            handleTeamRowSwap(draggedTeam, targetTeam, targetWeek, targetHomeAway, draggedHomeAway) {
+                // Find both teams' divisions
+                const draggedDivision = this.findTeamDivision(draggedTeam);
+                const targetDivision = this.findTeamDivision(targetTeam);
+                
+                if (!draggedDivision || !targetDivision) return;
+
+                // Get the target team's current game
+                const targetGame = this.scheduleData[targetDivision].matrix[targetTeam][targetWeek];
+                if (!targetGame) return;
+
+                // Check if dragged team is already playing someone this week
+                const draggedGame = this.scheduleData[draggedDivision].matrix[draggedTeam][targetWeek];
+                if (draggedGame && draggedGame.opponent) {
+                    // Remove dragged team from their current game
+                    this.removeTeamFromGame(draggedTeam, targetWeek);
+                }
+
+                // Replace the opponent in the target position
+                const oldOpponent = targetGame.opponent;
+                
+                // Update target team's game
+                targetGame.opponent = draggedTeam;
+                targetGame.opponentLogo = this.getTeamLogo(draggedTeam);
+                targetGame.homeAway = targetHomeAway;
+
+                // Update the dragged team's schedule
+                this.updateDraggedTeamSchedule(draggedTeam, targetTeam, targetWeek, targetHomeAway === 'H' ? 'A' : 'H');
+
+                // Update the old opponent's reverse game
+                if (oldOpponent) {
+                    this.removeOldOpponentGame(oldOpponent, targetTeam, targetWeek);
+                }
+
+                // Re-render the affected cells
+                this.updateCellDisplay(targetTeam, targetWeek, targetGame);
+                this.updateCellDisplay(draggedTeam, targetWeek, this.scheduleData[draggedDivision].matrix[draggedTeam][targetWeek]);
             }
 
             handleDragEnd(event) {
