@@ -1912,21 +1912,42 @@
 
 
             addRankingsConference(grid, division, maxWeeks) {
-                // Create rankings section header (non-collapsible, always visible with division)
+                // Create rankings section header (collapsible)
                 const rankingsHeader = document.createElement('div');
-                rankingsHeader.className = 'conference-header rankings-conference';
+                rankingsHeader.className = 'conference-header rankings-conference collapsed';
                 rankingsHeader.style.gridColumn = `1 / ${maxWeeks + 2}`;
+                rankingsHeader.style.cursor = 'pointer';
                 rankingsHeader.innerHTML = `
+                    <span class="conference-toggle">▶</span>
                     <span class="conference-name">🏆 Weekly Rankings - Top 20</span>
                     <span class="conference-count">(20 teams)</span>
                 `;
+                
+                // Add click handler for toggle
+                rankingsHeader.addEventListener('click', () => {
+                    const isCollapsed = rankingsHeader.classList.contains('collapsed');
+                    const weekHeadersRow = rankingsHeader.nextElementSibling;
+                    const rankingsRows = weekHeadersRow.nextElementSibling;
+                    
+                    if (isCollapsed) {
+                        rankingsHeader.classList.remove('collapsed');
+                        rankingsHeader.querySelector('.conference-toggle').textContent = '▼';
+                        weekHeadersRow.style.display = 'contents';
+                        rankingsRows.style.display = 'contents';
+                    } else {
+                        rankingsHeader.classList.add('collapsed');
+                        rankingsHeader.querySelector('.conference-toggle').textContent = '▶';
+                        weekHeadersRow.style.display = 'none';
+                        rankingsRows.style.display = 'none';
+                    }
+                });
                 
                 grid.appendChild(rankingsHeader);
 
                 // Add week headers for rankings
                 const weekHeadersRow = document.createElement('div');
                 weekHeadersRow.className = 'week-headers-row';
-                weekHeadersRow.style.display = 'contents'; // Always visible
+                weekHeadersRow.style.display = 'none'; // Start collapsed
                 
                 // Teams header
                 const teamsHeader = document.createElement('div');
@@ -1947,7 +1968,7 @@
                 // Create container for rankings rows
                 const rankingsRows = document.createElement('div');
                 rankingsRows.className = 'conference-teams';
-                rankingsRows.style.display = 'contents'; // Always visible
+                rankingsRows.style.display = 'none'; // Start collapsed
 
                 // Generate rankings data
                 const rankingsData = this.generateWeeklyRankings(division, maxWeeks);
@@ -1990,12 +2011,12 @@
                             
                             weekCell.innerHTML = `
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
                                     <div class="team-logo-container" style="width: 25px; height: 25px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
                                         <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="team-name-fallback" style="display: none; font-size: 7px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 1px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
                                     </div>
                                     <div style="font-size: 8px; color: #666; font-weight: 600; min-width: 20px; text-align: center;">${record}</div>
-                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
                                 </div>
                             `;
                         } else {
@@ -2982,12 +3003,12 @@
                             
                             weekCell.innerHTML = `
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
                                     <div class="team-logo-container" style="width: 25px; height: 25px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #dee2e6;">
                                         <img src="${teamForThisRank.logo}" alt="${teamForThisRank.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="team-name-fallback" style="display: none; font-size: 7px; font-weight: bold; color: #495057; text-align: center; line-height: 1.1; padding: 1px; background-color: #e9ecef; width: 100%; height: 100%; align-items: center; justify-content: center;">${teamForThisRank.abbreviation}</div>
                                     </div>
                                     <div style="font-size: 8px; color: #666; font-weight: 600; min-width: 20px; text-align: center;">${record}</div>
-                                    <div class="rankings-change ${changeClass}" style="font-size: 9px; padding: 1px 3px; border-radius: 2px; font-weight: bold;">${changeText}</div>
                                 </div>
                             `;
                         } else {
