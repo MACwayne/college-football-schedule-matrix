@@ -646,10 +646,14 @@
 
             async loadInitialData() {
                 try {
+                    console.log('🚀 Starting loadInitialData...');
                     await this.loadAllGames();
+                    console.log('✅ Games loaded, building schedules...');
                     this.buildDivisionSchedule('FBS');
                     this.buildDivisionSchedule('FCS');
+                    console.log('✅ Schedules built, rendering...');
                     this.renderAllDivisions();
+                    console.log('✅ Rendering complete!');
                 } catch (error) {
                     console.error('❌ Error in loadInitialData:', error);
                     console.error('Error stack:', error.stack);
@@ -1324,14 +1328,35 @@
                 try {
                     console.log('🌐 Starting fetchAllGames...');
                     
-                    // Fetch both FBS and FCS games in parallel for 2025 season
-                    console.log('📡 Making API calls...');
-                    const [fbsResponse, fcsResponse] = await Promise.all([
-                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&limit=1000`),
-                        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&groups=81&limit=1000`)
-                    ]);
+                    // Try 2025 season first, fallback to 2024 if needed
+                    let fbsResponse, fcsResponse;
                     
-                    console.log(`📊 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
+                    try {
+                        console.log('📡 Trying 2025 season...');
+                        [fbsResponse, fcsResponse] = await Promise.all([
+                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&limit=1000`),
+                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20250801-20251231&groups=81&limit=1000`)
+                        ]);
+                        
+                        console.log(`📊 2025 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
+                        
+                        // If 2025 data is empty or error, try 2024
+                        if (!fbsResponse.ok || !fcsResponse.ok || fbsResponse.status === 204) {
+                            console.log('⚠️ 2025 data not available, trying 2024...');
+                            [fbsResponse, fcsResponse] = await Promise.all([
+                                fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&limit=1000`),
+                                fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&groups=81&limit=1000`)
+                            ]);
+                            console.log(`📊 2024 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
+                        }
+                    } catch (error) {
+                        console.log('⚠️ 2025 failed, trying 2024...', error);
+                        [fbsResponse, fcsResponse] = await Promise.all([
+                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&limit=1000`),
+                            fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20240801-20241231&groups=81&limit=1000`)
+                        ]);
+                        console.log(`📊 2024 FBS Response: ${fbsResponse.status}, FCS Response: ${fcsResponse.status}`);
+                    }
                     
                     if (!fbsResponse.ok || !fcsResponse.ok) {
                         throw new Error(`ESPN API error! FBS status: ${fbsResponse.status}, FCS status: ${fcsResponse.status}`);
@@ -1344,6 +1369,8 @@
                     ]);
                     
                     console.log(`📈 FBS Events: ${fbsData.events?.length || 0}, FCS Events: ${fcsData.events?.length || 0}`);
+                    console.log('FBS Data:', fbsData);
+                    console.log('FCS Data:', fcsData);
                     
                     // Combine FBS and FCS games
                     const allGames = [
@@ -1352,6 +1379,12 @@
                     ];
                     
                     console.log(`✅ Total games combined: ${allGames.length}`);
+                    
+                    if (allGames.length === 0) {
+                        console.warn('⚠️ No games found! This might be because 2025 season hasn\'t started yet.');
+                        this.showError('No games found. The 2025 season may not have started yet. Please try again later.');
+                    }
+                    
                     return allGames;
                 } catch (error) {
                     console.error('❌ Error in fetchAllGames:', error);
